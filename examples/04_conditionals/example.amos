@@ -1,0 +1,14 @@
+# Conditional Expressions
+# If expressions must have both 'else' branches
+
+let age = 25
+in
+let is_student = true
+in
+  if age < 18
+    "Minor"
+  else if is_student
+    "Student"
+  else
+    "Adult"
+  end

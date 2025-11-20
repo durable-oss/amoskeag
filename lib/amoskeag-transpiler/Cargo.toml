@@ -1,0 +1,16 @@
+[package]
+name = "amoskeag-transpiler"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Transpiler from Amoskeag to Rust code"
+
+[dependencies]
+amoskeag-parser = { path = "../amoskeag-parser" }
+amoskeag-stdlib-operators = { path = "../amoskeag-stdlib-operators" }
+thiserror.workspace = true
+
+[dev-dependencies]
+pretty_assertions.workspace = true

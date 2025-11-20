@@ -1,0 +1,8 @@
+# Insurance Underwriting Rule Example
+# This rule determines whether to approve a driver based on age
+
+if driver.age > 16
+  :continue
+else
+  :deny
+end

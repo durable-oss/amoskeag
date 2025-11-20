@@ -1,0 +1,28 @@
+# Complex Business Rule
+# Insurance underwriting with multiple data sources
+
+let app = applicant
+in
+let limits = env.underwriting_limits
+in
+let state_is_restricted = limits.restricted_states | contains(app.state)
+in
+let is_high_value_sports_car =
+  app.vehicle.type == "SPORT" and app.vehicle.value > 70000
+in
+let is_young_sports_driver =
+  app.vehicle.type == "SPORT" and app.age < 25
+in
+  if state_is_restricted
+    :deny
+  else if app.vehicle.value > limits.max_vehicle_value
+    :deny
+  else if is_young_sports_driver
+    :deny
+  else if is_high_value_sports_car
+    :manual_review
+  else if app.claims_last_3_years > 2
+    :manual_review
+  else
+    :approve
+  end

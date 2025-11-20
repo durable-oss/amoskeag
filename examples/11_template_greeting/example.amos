@@ -1,0 +1,12 @@
+# Template: Greeting
+# Dynamic greeting based on user data
+
+let u = user
+in
+  if u.is_admin
+    "Welcome back, Administrator " + u.name + "!"
+  else if u.last_login != nil
+    "Welcome back, " + u.name + "!"
+  else
+    "Welcome, " + u.name + "! This is your first visit."
+  end

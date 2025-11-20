@@ -1,0 +1,18 @@
+# Array Operations
+# Working with arrays and collection functions
+
+let numbers = [10, 20, 30, 40, 50]
+in
+let total = numbers | sum
+in
+let average = numbers | avg
+in
+let count = numbers | size
+in
+  {
+    "total": total,
+    "average": average,
+    "count": count,
+    "first": numbers | first,
+    "last": numbers | last
+  }

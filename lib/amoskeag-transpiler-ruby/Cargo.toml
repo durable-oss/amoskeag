@@ -1,0 +1,14 @@
+[package]
+name = "amoskeag-transpiler-ruby"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+amoskeag-parser = { path = "../amoskeag-parser" }
+thiserror.workspace = true
+
+[dev-dependencies]
+pretty_assertions.workspace = true

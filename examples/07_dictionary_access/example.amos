@@ -1,0 +1,13 @@
+# Dictionary Access
+# Using dot notation to navigate dictionaries
+
+let user = {
+  "name": "Bob Smith",
+  "email": "bob@example.com",
+  "profile": {
+    "age": 35,
+    "city": "Boston"
+  }
+}
+in
+  user.name + " (" + user.email + ") lives in " + user.profile.city

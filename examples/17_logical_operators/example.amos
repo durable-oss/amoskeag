@@ -1,0 +1,19 @@
+# Logical Operators
+# Demonstrating and, or, not
+
+let age = 30
+in
+let income = 50000
+in
+let has_debt = true
+in
+let credit_score = 720
+in
+  {
+    "can_get_basic_loan": age >= 18 and income > 30000,
+    "needs_review": has_debt or credit_score < 650,
+    "instant_approval":
+      age >= 21 and income > 75000 and not has_debt and credit_score >= 750,
+    "complex_condition":
+      (age >= 25 or income > 60000) and (not has_debt or credit_score >= 700)
+  }

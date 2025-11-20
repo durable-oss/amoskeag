@@ -1,0 +1,20 @@
+# Simple Business Rule
+# Credit card approval logic
+
+let applicant = {
+  "age": 28,
+  "income": 55000,
+  "credit_score": 720
+}
+in
+  if applicant.age < 18
+    :deny
+  else if applicant.income < 30000
+    :deny
+  else if applicant.credit_score < 650
+    :deny
+  else if applicant.credit_score >= 750
+    :instant_approve
+  else
+    :approve
+  end

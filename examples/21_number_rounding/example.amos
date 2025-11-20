@@ -1,0 +1,31 @@
+# Number Rounding and Math
+# Mathematical operations and rounding
+
+let price = 19.99
+in
+let quantity = 7
+in
+let subtotal = price * quantity
+in
+let tax_rate = 0.0825
+in
+let tax = subtotal * tax_rate
+in
+let total = subtotal + tax
+in
+let discount_percent = 15
+in
+let discount_amount = total * (discount_percent / 100)
+in
+let final_total = total - discount_amount
+in
+  {
+    "subtotal": subtotal | round(2),
+    "tax": tax | round(2),
+    "total": total | round(2),
+    "discount": discount_amount | round(2),
+    "final_total": final_total | round(2),
+    "final_total_ceil": final_total | ceil,
+    "final_total_floor": final_total | floor,
+    "absolute_discount": discount_amount | abs | round(2)
+  }

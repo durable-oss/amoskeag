@@ -1,0 +1,14 @@
+# Complex underwriting rule with multiple conditions
+let min_age = 16
+in
+let max_value = 100000
+in
+  if driver.age < min_age
+    :deny
+  else if vehicle.value > max_value
+    :manual_review
+  else if vehicle.type == 'SPORT' and driver.age < 25
+    :manual_review
+  else
+    :approve
+  end

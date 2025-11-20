@@ -1,0 +1,6 @@
+# String Operations
+# Using the pipe operator with string functions
+
+let message = "  Hello, Amoskeag Language!  "
+in
+  message | strip | downcase | capitalize

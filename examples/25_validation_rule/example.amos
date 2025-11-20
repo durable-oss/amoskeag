@@ -1,0 +1,45 @@
+# Validation Rule
+# Form validation with detailed error checking
+
+let form = {
+  "email": "user@example.com",
+  "password": "mypassword123",
+  "age": 25,
+  "terms_accepted": true,
+  "country": "US"
+}
+in
+let email_valid =
+  (form.email | size > 3) and (form.email | contains("@"))
+in
+let password_valid =
+  form.password | size >= 8
+in
+let age_valid =
+  form.age >= 18 and form.age <= 120
+in
+let terms_valid =
+  form.terms_accepted == true
+in
+let country_supported =
+  ["US", "CA", "UK", "AU"] | contains(form.country)
+in
+let all_valid =
+  email_valid and password_valid and age_valid and
+  terms_valid and country_supported
+in
+  if all_valid
+    :valid
+  else if not email_valid
+    :invalid_email
+  else if not password_valid
+    :invalid_password
+  else if not age_valid
+    :invalid_age
+  else if not terms_valid
+    :terms_not_accepted
+  else if not country_supported
+    :unsupported_country
+  else
+    :invalid_unknown
+  end

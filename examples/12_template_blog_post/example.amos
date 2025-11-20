@@ -1,0 +1,24 @@
+# Template: Blog Post
+# Rendering blog post data with formatting
+
+let p = post
+in
+let title_display = p.title | upcase | truncate(50)
+in
+let author_display =
+  if p.author.is_verified
+    p.author.name + " ✓"
+  else
+    p.author.name
+  end
+in
+let status_badge =
+  if p.status == "published"
+    "[LIVE]"
+  else if p.status == "draft"
+    "[DRAFT]"
+  else
+    "[ARCHIVED]"
+  end
+in
+  status_badge + " " + title_display + " by " + author_display

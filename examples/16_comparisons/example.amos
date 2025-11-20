@@ -1,0 +1,19 @@
+# Comparison Operators
+# Testing all comparison operators
+
+let a = 10
+in
+let b = 20
+in
+let c = 10
+in
+  {
+    "equal": a == c,
+    "not_equal": a != b,
+    "less_than": a < b,
+    "greater_than": b > a,
+    "less_or_equal": a <= c,
+    "greater_or_equal": b >= a,
+    "string_equal": "hello" == "hello",
+    "string_not_equal": "hello" != "world"
+  }

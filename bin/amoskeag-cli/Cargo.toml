@@ -1,0 +1,26 @@
+[package]
+name = "amoskeag-cli"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Command-line interface for the Amoskeag language"
+
+[[bin]]
+name = "amoskeag"
+path = "src/main.rs"
+
+[dependencies]
+amoskeag = { path = "../../lib/amoskeag" }
+amoskeag-parser = { path = "../../lib/amoskeag-parser" }
+# Enterprise JIT dependencies (not available in open-source version)
+# amoskeag-jit = { path = "../../lib/amoskeag-jit", optional = true }
+# inkwell = { version = "0.5", optional = true }
+anyhow.workspace = true
+serde_json = "1.0"
+
+[features]
+default = []
+# Enterprise feature: JIT compilation using LLVM (not available in open-source version)
+jit = []

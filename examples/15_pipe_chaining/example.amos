@@ -1,0 +1,12 @@
+# Pipe Chaining
+# Demonstrating the power of the pipe operator
+
+let raw_input = "  hello, WORLD! this is AMOSKEAG.  "
+in
+  raw_input
+    | strip
+    | downcase
+    | capitalize
+    | replace("amoskeag", "Amoskeag")
+    | replace("!", "")
+    | truncate(40)

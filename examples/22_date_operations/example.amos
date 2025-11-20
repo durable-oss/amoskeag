@@ -1,0 +1,17 @@
+# Date Operations
+# Working with dates (provided by host context)
+
+# Dates are provided by the host system in the context
+# The host controls "now" for deterministic evaluation
+
+let user_created = date_now()
+in
+let formatted_date = user_created | date_format("YYYY-MM-DD")
+in
+let formatted_datetime = user_created | date_format("YYYY-MM-DD HH:mm:ss")
+in
+  {
+    "created_at": formatted_date,
+    "created_at_full": formatted_datetime,
+    "display": "Account created on " + formatted_date
+  }

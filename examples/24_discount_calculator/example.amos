@@ -1,0 +1,60 @@
+# Discount Calculator
+# E-commerce pricing with tiered discounts
+
+let cart = {
+  "items": [
+    {"name": "Widget", "price": 29.99, "qty": 2},
+    {"name": "Gadget", "price": 49.99, "qty": 1},
+    {"name": "Tool", "price": 15.00, "qty": 3}
+  ],
+  "customer": {
+    "is_member": true,
+    "loyalty_points": 500
+  }
+}
+in
+let subtotal = (29.99 * 2) + (49.99 * 1) + (15.00 * 3)
+in
+let member_discount_rate =
+  if cart.customer.is_member then 0.10 else 0
+in
+let member_discount = subtotal * member_discount_rate
+in
+let subtotal_after_member = subtotal - member_discount
+in
+let volume_discount =
+  if subtotal > 150
+    then subtotal_after_member * 0.05
+  else if subtotal > 100
+    then subtotal_after_member * 0.03
+  else
+    0
+  end
+in
+let loyalty_discount =
+  if cart.customer.loyalty_points >= 500
+    then 10.00
+  else if cart.customer.loyalty_points >= 200
+    then 5.00
+  else
+    0
+  end
+in
+let total_discount = member_discount + volume_discount + loyalty_discount
+in
+let final_price = subtotal - total_discount
+in
+  {
+    "pricing": {
+      "subtotal": subtotal | round(2),
+      "member_discount": member_discount | round(2),
+      "volume_discount": volume_discount | round(2),
+      "loyalty_discount": loyalty_discount | round(2),
+      "total_discount": total_discount | round(2),
+      "final_price": final_price | round(2)
+    },
+    "savings": {
+      "amount": total_discount | round(2),
+      "percent": ((total_discount / subtotal) * 100) | round(1)
+    }
+  }

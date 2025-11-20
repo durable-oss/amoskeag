@@ -1,0 +1,48 @@
+[workspace]
+resolver = "2"
+members = [
+    "lib/amoskeag",
+    "lib/amoskeag-lexer",
+    "lib/amoskeag-parser",
+    "lib/amoskeag-python-transpiler",
+    "lib/amoskeag-javascript-transpiler",
+    "lib/amoskeag-stdlib-operators",
+    "lib/amoskeag-stdlib-functions",
+    "lib/amoskeag-transpiler",
+    "lib/amoskeag-transpiler-ruby",
+    "lib/amoskeag-sast",
+    "bin/amoskeag-cli",
+    "bin/transpiler-example",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+authors = ["Amoskeag Contributors"]
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/durableprogramming/amoskeag"
+
+[workspace.dependencies]
+# Parsing
+nom = "7.1"
+
+# Error handling
+thiserror = "1.0"
+anyhow = "1.0"
+
+# Serialization
+serde = "1.0"
+serde_json = "1.0"
+
+# Testing
+pretty_assertions = "1.4"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true
+
+[profile.dev]
+opt-level = 0
+debug = true

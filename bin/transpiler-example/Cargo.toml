@@ -1,0 +1,14 @@
+[package]
+name = "transpiler-example"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[[bin]]
+name = "transpile-rule"
+path = "src/main.rs"
+
+[dependencies]
+amoskeag-python-transpiler = { path = "../../lib/amoskeag-python-transpiler" }

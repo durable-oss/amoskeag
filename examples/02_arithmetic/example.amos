@@ -1,0 +1,10 @@
+# Arithmetic Operations
+# Demonstrates basic math operators
+
+let base = 100
+in
+let tax = base * 0.08
+in
+let shipping = 15
+in
+  base + tax + shipping

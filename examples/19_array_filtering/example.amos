@@ -1,0 +1,25 @@
+# Array Filtering and Transformation
+# Working with collections
+
+let products = [
+  {"name": "Laptop", "price": 1200, "category": "electronics"},
+  {"name": "Mouse", "price": 25, "category": "electronics"},
+  {"name": "Desk", "price": 300, "category": "furniture"},
+  {"name": "Chair", "price": 150, "category": "furniture"}
+]
+in
+let prices = [1200, 25, 300, 150]
+in
+let total = prices | sum
+in
+let average = prices | avg
+in
+let sorted_prices = prices | sort
+in
+  {
+    "total_value": total,
+    "average_price": average | round(2),
+    "cheapest": sorted_prices | first,
+    "most_expensive": sorted_prices | last,
+    "product_count": products | size
+  }

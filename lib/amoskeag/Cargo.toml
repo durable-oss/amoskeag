@@ -1,0 +1,30 @@
+[package]
+name = "amoskeag"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "A purely functional, statically-validated evaluation language"
+
+[dependencies]
+amoskeag-lexer = { path = "../amoskeag-lexer" }
+amoskeag-parser = { path = "../amoskeag-parser" }
+amoskeag-stdlib-operators = { path = "../amoskeag-stdlib-operators" }
+amoskeag-stdlib-functions = { path = "../amoskeag-stdlib-functions" }
+amoskeag-javascript-transpiler = { path = "../amoskeag-javascript-transpiler", optional = true }
+thiserror.workspace = true
+anyhow.workspace = true
+
+[dev-dependencies]
+pretty_assertions.workspace = true
+serde_json.workspace = true
+
+[[example]]
+name = "backend-comparison"
+path = "../../examples/backend-comparison.rs"
+
+[[example]]
+name = "javascript_transpiler_demo"
+path = "../../examples/javascript_transpiler_demo.rs"
+required-features = ["amoskeag-javascript-transpiler"]

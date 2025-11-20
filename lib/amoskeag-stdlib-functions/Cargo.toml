@@ -1,0 +1,10 @@
+[package]
+name = "amoskeag-stdlib-functions"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+amoskeag-stdlib-operators = { path = "../amoskeag-stdlib-operators" }

@@ -1,0 +1,36 @@
+# Nested Data Access
+# Deep dictionary navigation with safe access
+
+let company = {
+  "name": "TechCorp",
+  "address": {
+    "street": "123 Main St",
+    "city": "Boston",
+    "state": "MA",
+    "geo": {
+      "lat": 42.3601,
+      "lon": -71.0589
+    }
+  },
+  "employees": [
+    {
+      "name": "Alice",
+      "role": "Engineer",
+      "contact": {
+        "email": "alice@techcorp.com"
+      }
+    }
+  ]
+}
+in
+let location_str =
+  company.address.city + ", " + company.address.state
+in
+let coordinates =
+  "(" + (company.address.geo.lat | round(2)) +
+  ", " + (company.address.geo.lon | round(2)) + ")"
+in
+let first_employee = company.employees | first
+in
+  company.name + " - " + location_str + " " + coordinates +
+  " - Contact: " + first_employee.contact.email

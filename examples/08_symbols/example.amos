@@ -1,0 +1,12 @@
+# Symbols
+# Statically-validated enumeration values
+
+let status = "active"
+in
+  if status == "active"
+    :approved
+  else if status == "pending"
+    :waiting
+  else
+    :denied
+  end

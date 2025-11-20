@@ -1,0 +1,10 @@
+# Variable Bindings
+# Let expressions create immutable local variables
+
+let name = "Alice"
+in
+let greeting = "Hello"
+in
+let punctuation = "!"
+in
+  greeting + ", " + name + punctuation

@@ -1,0 +1,17 @@
+# Spreadsheet Formulas
+# Excel-like formula evaluation
+
+# This represents a cell formula that references other cells
+# The 'data' context contains all cell values
+
+let scenario_index = B1
+in
+let growth_rates = B2
+in
+let last_year_revenue = B3
+in
+let selected_rate = choose(scenario_index, growth_rates)
+in
+let this_year_revenue = last_year_revenue * (1 + selected_rate)
+in
+  this_year_revenue | round(2)

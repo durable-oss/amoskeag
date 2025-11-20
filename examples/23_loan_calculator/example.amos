@@ -1,0 +1,37 @@
+# Loan Calculator
+# Complete mortgage/loan payment calculator
+
+let loan = {
+  "amount": 350000,
+  "annual_rate": 0.0375,
+  "years": 30
+}
+in
+let monthly_rate = loan.annual_rate / 12
+in
+let num_payments = loan.years * 12
+in
+let monthly_payment = pmt(monthly_rate, num_payments, loan.amount)
+in
+let total_paid = monthly_payment * num_payments
+in
+let total_interest = total_paid - loan.amount
+in
+let interest_percent = (total_interest / loan.amount) * 100
+in
+  {
+    "loan_summary": {
+      "principal": loan.amount,
+      "rate": (loan.annual_rate * 100) | round(2),
+      "term_years": loan.years
+    },
+    "payment_details": {
+      "monthly_payment": monthly_payment | round(2),
+      "total_payments": num_payments,
+      "total_amount_paid": total_paid | round(2)
+    },
+    "interest_analysis": {
+      "total_interest": total_interest | round(2),
+      "interest_as_percent_of_principal": interest_percent | round(1)
+    }
+  }

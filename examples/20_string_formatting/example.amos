@@ -1,0 +1,24 @@
+# String Formatting
+# Advanced string manipulation
+
+let first_name = "john"
+in
+let last_name = "DOE"
+in
+let full_name =
+  (first_name | capitalize) + " " + (last_name | capitalize)
+in
+let email_base = full_name | downcase | replace(" ", ".")
+in
+let bio = "   Software engineer with 10 years experience.   "
+in
+let tags = ["rust", "typescript", "python"]
+in
+  {
+    "display_name": full_name,
+    "email": email_base + "@company.com",
+    "bio_clean": bio | strip,
+    "bio_short": bio | strip | truncate(30),
+    "tags_joined": tags | join(", "),
+    "tag_count": tags | size
+  }
