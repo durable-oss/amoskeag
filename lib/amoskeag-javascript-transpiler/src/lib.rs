@@ -196,6 +196,7 @@ fn generate_helpers(output: &mut String, indent: &str) -> Result<(), TranspileEr
 }
 
 /// Transpile an expression to JavaScript code
+#[allow(clippy::only_used_in_recursion)]
 fn transpile_expr(expr: &Expr, indent: &str, depth: usize) -> Result<String, TranspileError> {
     match expr {
         // Literals

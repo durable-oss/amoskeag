@@ -192,6 +192,12 @@ impl Parser {
         self.consume_token(&TokenType::If, "if")?;
 
         let condition = Box::new(self.expression()?);
+
+        // Optionally consume "then" keyword
+        if self.check(&TokenType::Then) {
+            self.advance();
+        }
+
         let then_branch = Box::new(self.expression()?);
 
         self.consume_token(&TokenType::Else, "else")?;
@@ -208,12 +214,14 @@ impl Parser {
     }
 
     fn logical_expression(&mut self) -> Result<Expr, ParseError> {
-        // LogicalExpression ::= ComparisonExpression ( ("or" | "and") ComparisonExpression )*
+        // LogicalExpression ::= ComparisonExpression ( ("or" | "||" | "and" | "&&") ComparisonExpression )*
         self.binary_op(
             Self::comparison_expression,
             &[
                 (TokenType::Or, BinaryOp::Or),
+                (TokenType::LogicalOr, BinaryOp::Or),
                 (TokenType::And, BinaryOp::And),
+                (TokenType::LogicalAnd, BinaryOp::And),
             ],
         )
     }
@@ -343,7 +351,7 @@ impl Parser {
             }
 
             // Unary operators
-            TokenType::Not => {
+            TokenType::Not | TokenType::Bang => {
                 self.advance();
                 let operand = Box::new(self.primary_expression()?);
                 Ok(Expr::Unary {
@@ -1172,5 +1180,108 @@ mod tests {
         } else {
             panic!("Expected let expression");
         }
+    }
+
+    #[test]
+    fn test_parse_logical_and_symbol() {
+        let expr = parse("true && false").unwrap();
+        assert_eq!(
+            expr,
+            Expr::Binary {
+                op: BinaryOp::And,
+                left: Box::new(Expr::Boolean(true)),
+                right: Box::new(Expr::Boolean(false)),
+            }
+        );
+    }
+
+    #[test]
+    fn test_parse_logical_or_symbol() {
+        let expr = parse("true || false").unwrap();
+        assert_eq!(
+            expr,
+            Expr::Binary {
+                op: BinaryOp::Or,
+                left: Box::new(Expr::Boolean(true)),
+                right: Box::new(Expr::Boolean(false)),
+            }
+        );
+    }
+
+    #[test]
+    fn test_parse_bang_operator() {
+        let expr = parse("!true").unwrap();
+        assert_eq!(
+            expr,
+            Expr::Unary {
+                op: UnaryOp::Not,
+                operand: Box::new(Expr::Boolean(true)),
+            }
+        );
+    }
+
+    #[test]
+    fn test_parse_mixed_logical_operators() {
+        let expr = parse("true && false || true").unwrap();
+        // Should parse as (true && false) || true
+        if let Expr::Binary { op, left, right } = expr {
+            assert_eq!(op, BinaryOp::Or);
+            assert!(matches!(*left, Expr::Binary { .. }));
+            assert_eq!(*right, Expr::Boolean(true));
+        } else {
+            panic!("Expected binary expression");
+        }
+    }
+
+    #[test]
+    fn test_parse_nested_multiline_if() {
+        let expr = parse(r#"
+            if true
+              if false
+                1
+              else
+                2
+              end
+            else
+              3
+            end
+        "#).unwrap();
+
+        if let Expr::If { condition, then_branch, else_branch } = expr {
+            assert_eq!(*condition, Expr::Boolean(true));
+            assert!(matches!(*then_branch, Expr::If { .. }));
+            assert_eq!(*else_branch, Expr::Number(3.0));
+        } else {
+            panic!("Expected if expression");
+        }
+    }
+
+    #[test]
+    fn test_parse_deeply_nested_if() {
+        let expr = parse(r#"
+            if true
+              if false
+                if true
+                  1
+                else
+                  2
+                end
+              else
+                3
+              end
+            else
+              4
+            end
+        "#).unwrap();
+
+        // Just verify it parses successfully
+        assert!(matches!(expr, Expr::If { .. }));
+    }
+
+    #[test]
+    fn test_parse_complex_logical_expression() {
+        let expr = parse("(true || false) && (false || true)").unwrap();
+        // Should parse with proper precedence and parentheses
+        assert!(matches!(expr, Expr::Binary { op: BinaryOp::And, .. }));
     }
 }

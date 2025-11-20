@@ -7,6 +7,9 @@ license.workspace = true
 repository.workspace = true
 description = "A purely functional, statically-validated evaluation language"
 
+[lib]
+crate-type = ["rlib", "cdylib", "staticlib"]
+
 [dependencies]
 amoskeag-lexer = { path = "../amoskeag-lexer" }
 amoskeag-parser = { path = "../amoskeag-parser" }

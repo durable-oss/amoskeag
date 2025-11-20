@@ -18,6 +18,7 @@ use thiserror::Error;
 pub enum TokenType {
     // Keywords
     If,
+    Then,
     Else,
     End,
     Let,
@@ -43,6 +44,7 @@ pub enum TokenType {
     Percent,
     Pipe,
     Dot,
+    Bang,  // ! (unary not)
 
     // Comparison
     Equal,
@@ -51,6 +53,10 @@ pub enum TokenType {
     Greater,
     LessEqual,
     GreaterEqual,
+
+    // Logical operators (symbols)
+    LogicalAnd,  // &&
+    LogicalOr,   // ||
 
     // Assignment/Binding
     Assign,
@@ -73,6 +79,7 @@ impl fmt::Display for TokenType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             TokenType::If => write!(f, "if"),
+            TokenType::Then => write!(f, "then"),
             TokenType::Else => write!(f, "else"),
             TokenType::End => write!(f, "end"),
             TokenType::Let => write!(f, "let"),
@@ -94,12 +101,15 @@ impl fmt::Display for TokenType {
             TokenType::Percent => write!(f, "%"),
             TokenType::Pipe => write!(f, "|"),
             TokenType::Dot => write!(f, "."),
+            TokenType::Bang => write!(f, "!"),
             TokenType::Equal => write!(f, "=="),
             TokenType::NotEqual => write!(f, "!="),
             TokenType::Less => write!(f, "<"),
             TokenType::Greater => write!(f, ">"),
             TokenType::LessEqual => write!(f, "<="),
             TokenType::GreaterEqual => write!(f, ">="),
+            TokenType::LogicalAnd => write!(f, "&&"),
+            TokenType::LogicalOr => write!(f, "||"),
             TokenType::Assign => write!(f, "="),
             TokenType::LeftParen => write!(f, "("),
             TokenType::RightParen => write!(f, ")"),
@@ -225,7 +235,28 @@ impl Lexer {
             '*' => Ok(self.make_token(TokenType::Star, "*", start_line, start_column)),
             '/' => Ok(self.make_token(TokenType::Slash, "/", start_line, start_column)),
             '%' => Ok(self.make_token(TokenType::Percent, "%", start_line, start_column)),
-            '|' => Ok(self.make_token(TokenType::Pipe, "|", start_line, start_column)),
+
+            // Pipe or logical OR
+            '|' => {
+                if self.match_char('|') {
+                    Ok(self.make_token(TokenType::LogicalOr, "||", start_line, start_column))
+                } else {
+                    Ok(self.make_token(TokenType::Pipe, "|", start_line, start_column))
+                }
+            }
+
+            // Logical AND
+            '&' => {
+                if self.match_char('&') {
+                    Ok(self.make_token(TokenType::LogicalAnd, "&&", start_line, start_column))
+                } else {
+                    Err(LexError::UnexpectedCharacter {
+                        character: '&',
+                        line: start_line,
+                        column: start_column,
+                    })
+                }
+            }
 
             // Two-character tokens or single character
             '=' => {
@@ -239,11 +270,7 @@ impl Lexer {
                 if self.match_char('=') {
                     Ok(self.make_token(TokenType::NotEqual, "!=", start_line, start_column))
                 } else {
-                    Err(LexError::UnexpectedCharacter {
-                        character: '!',
-                        line: start_line,
-                        column: start_column,
-                    })
+                    Ok(self.make_token(TokenType::Bang, "!", start_line, start_column))
                 }
             }
             '<' => {
@@ -471,6 +498,7 @@ impl Lexer {
 
         let token_type = match lexeme.as_str() {
             "if" => TokenType::If,
+            "then" => TokenType::Then,
             "else" => TokenType::Else,
             "end" => TokenType::End,
             "let" => TokenType::Let,
@@ -844,11 +872,11 @@ mod tests {
     }
 
     #[test]
-    fn test_exclamation_mark_error() {
+    fn test_exclamation_mark() {
         let input = "!";
         let mut lexer = Lexer::new(input);
-        let result = lexer.tokenize();
-        assert!(result.is_err());
+        let tokens = lexer.tokenize().unwrap();
+        assert_eq!(tokens[0].token_type, TokenType::Bang);
     }
 
     #[test]
@@ -899,6 +927,62 @@ mod tests {
         assert_eq!(tokens[0].token_type, TokenType::Identifier("_start".to_string()));
         assert_eq!(tokens[1].token_type, TokenType::Identifier("middle_".to_string()));
         assert_eq!(tokens[2].token_type, TokenType::Identifier("_under_score_".to_string()));
+    }
+
+    #[test]
+    fn test_logical_and_operator() {
+        let input = "&&";
+        let mut lexer = Lexer::new(input);
+        let tokens = lexer.tokenize().unwrap();
+        assert_eq!(tokens[0].token_type, TokenType::LogicalAnd);
+    }
+
+    #[test]
+    fn test_logical_or_operator() {
+        let input = "||";
+        let mut lexer = Lexer::new(input);
+        let tokens = lexer.tokenize().unwrap();
+        assert_eq!(tokens[0].token_type, TokenType::LogicalOr);
+    }
+
+    #[test]
+    fn test_pipe_vs_logical_or() {
+        let input = "| ||";
+        let mut lexer = Lexer::new(input);
+        let tokens = lexer.tokenize().unwrap();
+        assert_eq!(tokens[0].token_type, TokenType::Pipe);
+        assert_eq!(tokens[1].token_type, TokenType::LogicalOr);
+    }
+
+    #[test]
+    fn test_bang_operator() {
+        let input = "!true";
+        let mut lexer = Lexer::new(input);
+        let tokens = lexer.tokenize().unwrap();
+        assert_eq!(tokens[0].token_type, TokenType::Bang);
+        assert_eq!(tokens[1].token_type, TokenType::True);
+    }
+
+    #[test]
+    fn test_bang_vs_not_equal() {
+        let input = "! !=";
+        let mut lexer = Lexer::new(input);
+        let tokens = lexer.tokenize().unwrap();
+        assert_eq!(tokens[0].token_type, TokenType::Bang);
+        assert_eq!(tokens[1].token_type, TokenType::NotEqual);
+    }
+
+    #[test]
+    fn test_all_logical_operators() {
+        let input = "and or && || not !";
+        let mut lexer = Lexer::new(input);
+        let tokens = lexer.tokenize().unwrap();
+        assert_eq!(tokens[0].token_type, TokenType::And);
+        assert_eq!(tokens[1].token_type, TokenType::Or);
+        assert_eq!(tokens[2].token_type, TokenType::LogicalAnd);
+        assert_eq!(tokens[3].token_type, TokenType::LogicalOr);
+        assert_eq!(tokens[4].token_type, TokenType::Not);
+        assert_eq!(tokens[5].token_type, TokenType::Bang);
     }
 
     #[test]

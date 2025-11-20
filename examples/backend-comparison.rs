@@ -72,6 +72,7 @@ fn main() {
 }
 
 /// Helper function to format execution results
+#[allow(dead_code)]
 fn format_result(result: &Value) -> String {
     match result {
         Value::Number(n) => format!("{}", n),

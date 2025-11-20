@@ -5,14 +5,51 @@ require "rake/testtask"
 # Configure the extension task
 Rake::ExtensionTask.new("amoskeag_native") do |ext|
   ext.lib_dir = "lib"
-  ext.ext_dir = "ext/amoskeag"
+  ext.ext_dir = "amoskeag"
+  ext.source_pattern = "*.{c,h,rs}"
 end
 
-# Test task (if tests exist)
+# Test tasks
+namespace :test do
+  desc "Run unit tests"
+  Rake::TestTask.new(:unit) do |t|
+    t.libs << "test"
+    t.libs << "lib"
+    t.test_files = FileList["test/unit/*_test.rb"]
+    t.verbose = true
+    t.warning = false
+  end
+
+  desc "Run integration tests"
+  Rake::TestTask.new(:integration) do |t|
+    t.libs << "test"
+    t.libs << "lib"
+    t.test_files = FileList["test/integration/*_test.rb"]
+    t.verbose = true
+    t.warning = false
+  end
+
+  desc "Run edge case tests"
+  Rake::TestTask.new(:edge_cases) do |t|
+    t.libs << "test"
+    t.libs << "lib"
+    t.test_files = FileList["test/edge_cases/*_test.rb"]
+    t.verbose = true
+    t.warning = false
+  end
+
+  desc "Run all tests"
+  task all: [:unit, :integration, :edge_cases]
+end
+
+# Main test task runs all tests
+desc "Run all tests"
 Rake::TestTask.new(:test) do |t|
   t.libs << "test"
   t.libs << "lib"
   t.test_files = FileList["test/**/*_test.rb"]
+  t.verbose = true
+  t.warning = false
 end
 
 # Default task

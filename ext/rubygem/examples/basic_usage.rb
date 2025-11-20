@@ -8,41 +8,41 @@ puts "=" * 50
 
 # Example 1: Basic Arithmetic
 puts "\n1. Basic Arithmetic"
-result = Amoskeag.eval("2 + 2", {})
+result = Amoskeag.eval_expression("2 + 2", {})
 puts "  2 + 2 = #{result}"
 
-result = Amoskeag.eval("(100 + 50) * 1.08", {})
+result = Amoskeag.eval_expression("(100 + 50) * 1.08", {})
 puts "  (100 + 50) * 1.08 = #{result}"
 
 # Example 2: Using Variables
 puts "\n2. Using Variables"
 data = { "user" => { "age" => 25, "name" => "Alice" } }
-result = Amoskeag.eval("user.age * 2", data)
+result = Amoskeag.eval_expression("user.age * 2", data)
 puts "  user.age * 2 = #{result} (where user.age = 25)"
 
-result = Amoskeag.eval('"Hello, " + user.name + "!"', data)
+result = Amoskeag.eval_expression('"Hello, " + user.name + "!"', data)
 puts "  Result: #{result}"
 
 # Example 3: String Operations with Pipe
 puts "\n3. String Operations"
-result = Amoskeag.eval('"  hello world  " | strip | upcase', {})
+result = Amoskeag.eval_expression('"  hello world  " | strip | upcase', {})
 puts '  "  hello world  " | strip | upcase = "' + result + '"'
 
-result = Amoskeag.eval('"hello,world,ruby" | split(",") | size', {})
+result = Amoskeag.eval_expression('"hello,world,ruby" | split(",") | size', {})
 puts '  "hello,world,ruby" | split(",") | size = ' + result.to_s
 
 # Example 4: Arrays and Collections
 puts "\n4. Arrays and Collections"
-result = Amoskeag.eval("[1, 2, 3, 4, 5] | sum", {})
+result = Amoskeag.eval_expression("[1, 2, 3, 4, 5] | sum", {})
 puts "  [1, 2, 3, 4, 5] | sum = #{result}"
 
-result = Amoskeag.eval("[1, 2, 3, 4, 5] | avg", {})
+result = Amoskeag.eval_expression("[1, 2, 3, 4, 5] | avg", {})
 puts "  [1, 2, 3, 4, 5] | avg = #{result}"
 
 # Example 5: Conditional Logic
 puts "\n5. Conditional Logic"
 data = { "score" => 95 }
-result = Amoskeag.eval('if score >= 90 "A" else "B" end', data)
+result = Amoskeag.eval_expression('if score >= 90 "A" else "B" end', data)
 puts "  Grade for score 95: #{result}"
 
 # Example 6: Business Rules with Symbols
@@ -95,10 +95,10 @@ puts "  Regular user: #{result}"
 
 # Example 9: Safe Navigation
 puts "\n9. Safe Navigation (nil-safe)"
-result = Amoskeag.eval("user.address.street", { "user" => {} })
+result = Amoskeag.eval_expression("user.address.street", { "user" => {} })
 puts "  user.address.street (missing): #{result.inspect}"
 
-result = Amoskeag.eval("user.address.street", {
+result = Amoskeag.eval_expression("user.address.street", {
   "user" => {
     "address" => {
       "street" => "123 Main St"
@@ -116,7 +116,7 @@ code = <<~CODE
   in total
 CODE
 
-result = Amoskeag.eval(code, {})
+result = Amoskeag.eval_expression(code, {})
 puts "  Base: 100, Tax: 8%, Total: #{result}"
 
 puts "\n" + "=" * 50

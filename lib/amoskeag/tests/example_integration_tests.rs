@@ -3,6 +3,8 @@
 //! This file contains tests for each example in the examples/ directory,
 //! ensuring that the interpreter produces the expected output.
 
+#![allow(clippy::needless_borrow)]
+
 use amoskeag::*;
 use amoskeag_stdlib_operators::Value;
 use std::collections::HashMap;
@@ -81,7 +83,7 @@ fn test_04_conditionals() {
             end
           end
     "#;
-    let program = compile(source, &[]).expect("Compilation failed");
+    let program = compile(&source, &[]).expect("Compilation failed");
     let data = HashMap::new();
     let result = evaluate(&program, &data).expect("Evaluation failed");
 
@@ -146,7 +148,7 @@ fn test_08_symbols() {
           end
     "#;
     let symbols = &["approved", "waiting", "denied"];
-    let program = compile(source, symbols).expect("Compilation failed");
+    let program = compile(&source, symbols).expect("Compilation failed");
     let data = HashMap::new();
     let result = evaluate(&program, &data).expect("Evaluation failed");
 
@@ -182,7 +184,7 @@ fn test_09_business_rule_simple() {
           end
     "#;
     let symbols = &["deny", "instant_approve", "approve"];
-    let program = compile(source, symbols).expect("Compilation failed");
+    let program = compile(&source, symbols).expect("Compilation failed");
     let data = HashMap::new();
     let result = evaluate(&program, &data).expect("Evaluation failed");
 
@@ -228,7 +230,7 @@ fn test_10_business_rule_complex() {
           end
     "#;
     let symbols = &["approve", "deny", "manual_review"];
-    let program = compile(source, symbols).expect("Compilation failed");
+    let program = compile(&source, symbols).expect("Compilation failed");
 
     // Build the data context
     let applicant_vehicle = dict([

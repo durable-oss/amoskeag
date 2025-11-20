@@ -2,14 +2,23 @@ use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
 use std::ptr;
 use std::collections::HashMap;
+use std::panic;
 use amoskeag::{compile, evaluate, CompiledProgram};
 use amoskeag_stdlib_operators::Value;
+
+// Maximum allowed sizes for defensive programming
+const MAX_SOURCE_SIZE: usize = 10 * 1024 * 1024; // 10MB
+const MAX_JSON_SIZE: usize = 100 * 1024 * 1024; // 100MB
+const MAX_SYMBOLS_COUNT: usize = 10_000;
+const MAX_DICT_DEPTH: usize = 100;
 
 // Opaque pointer types for Ruby FFI
 pub struct AmoskeagProgram {
     program: CompiledProgram,
 }
 
+// Not currently used but may be useful for future error handling
+#[allow(dead_code)]
 pub struct AmoskeagError {
     message: String,
 }
@@ -41,6 +50,8 @@ fn value_to_json(value: &Value) -> Result<String, String> {
 }
 
 // Convert JSON string to Value
+// Not currently used but kept for potential future direct JSON parsing needs
+#[allow(dead_code)]
 fn json_to_value(json_str: &str) -> Result<Value, String> {
     let json_value: serde_json::Value = serde_json::from_str(json_str)
         .map_err(|e| format!("JSON parse error: {}", e))?;
@@ -49,20 +60,44 @@ fn json_to_value(json_str: &str) -> Result<Value, String> {
 }
 
 fn json_value_to_value(json: &serde_json::Value) -> Result<Value, String> {
+    json_value_to_value_with_depth(json, 0)
+}
+
+fn json_value_to_value_with_depth(json: &serde_json::Value, depth: usize) -> Result<Value, String> {
+    // Defensive: Prevent stack overflow from deeply nested structures
+    if depth > MAX_DICT_DEPTH {
+        return Err(format!("JSON structure too deeply nested (max depth: {})", MAX_DICT_DEPTH));
+    }
+
     match json {
         serde_json::Value::Null => Ok(Value::Nil),
         serde_json::Value::Bool(b) => Ok(Value::Boolean(*b)),
         serde_json::Value::Number(n) => {
             if let Some(f) = n.as_f64() {
+                // Defensive: Check for special float values
+                if !f.is_finite() {
+                    return Err(format!("Invalid number: {} (must be finite)", f));
+                }
                 Ok(Value::Number(f))
             } else {
                 Err("Number conversion error".to_string())
             }
         }
-        serde_json::Value::String(s) => Ok(Value::String(s.clone())),
+        serde_json::Value::String(s) => {
+            // Defensive: Check string length
+            if s.len() > MAX_JSON_SIZE {
+                return Err(format!("String too large: {} bytes (max: {})", s.len(), MAX_JSON_SIZE));
+            }
+            Ok(Value::String(s.clone()))
+        }
         serde_json::Value::Array(arr) => {
+            // Defensive: Check array size
+            if arr.len() > 1_000_000 {
+                return Err(format!("Array too large: {} elements (max: 1,000,000)", arr.len()));
+            }
+
             let values: Result<Vec<Value>, String> = arr.iter()
-                .map(json_value_to_value)
+                .map(|v| json_value_to_value_with_depth(v, depth + 1))
                 .collect();
             Ok(Value::Array(values?))
         }
@@ -70,13 +105,29 @@ fn json_value_to_value(json: &serde_json::Value) -> Result<Value, String> {
             // Check if this is a symbol
             if obj.len() == 1 && obj.contains_key("__symbol__") {
                 if let Some(serde_json::Value::String(s)) = obj.get("__symbol__") {
+                    // Defensive: Validate symbol name
+                    if s.is_empty() {
+                        return Err("Symbol name cannot be empty".to_string());
+                    }
+                    if s.len() > 1000 {
+                        return Err(format!("Symbol name too long: {} bytes (max: 1000)", s.len()));
+                    }
                     return Ok(Value::Symbol(s.clone()));
                 }
             }
 
+            // Defensive: Check object size
+            if obj.len() > 100_000 {
+                return Err(format!("Object too large: {} keys (max: 100,000)", obj.len()));
+            }
+
             let mut dict = HashMap::new();
             for (k, v) in obj.iter() {
-                dict.insert(k.clone(), json_value_to_value(v)?);
+                // Defensive: Validate key length
+                if k.len() > 1000 {
+                    return Err(format!("Object key too long: {} bytes (max: 1000)", k.len()));
+                }
+                dict.insert(k.clone(), json_value_to_value_with_depth(v, depth + 1)?);
             }
             Ok(Value::Dictionary(dict))
         }
@@ -92,60 +143,116 @@ pub extern "C" fn amoskeag_compile(
     symbols_json: *const c_char,
     error_out: *mut *mut c_char,
 ) -> *mut AmoskeagProgram {
-    if source.is_null() {
-        return ptr::null_mut();
-    }
-
-    let source_str = unsafe {
-        match CStr::from_ptr(source).to_str() {
-            Ok(s) => s,
-            Err(_) => {
-                if !error_out.is_null() {
-                    let err_msg = CString::new("Invalid UTF-8 in source").unwrap();
-                    unsafe { *error_out = err_msg.into_raw(); }
-                }
-                return ptr::null_mut();
-            }
+    // Defensive: Catch panics to prevent unwinding into C/Ruby
+    let result = panic::catch_unwind(|| {
+        // Defensive: Validate source pointer
+        if source.is_null() {
+            return Err("source pointer is null".to_string());
         }
-    };
 
-    let symbols: Vec<&str> = if symbols_json.is_null() {
-        Vec::new()
-    } else {
-        let symbols_str = unsafe {
-            match CStr::from_ptr(symbols_json).to_str() {
+        let source_str = unsafe {
+            match CStr::from_ptr(source).to_str() {
                 Ok(s) => s,
                 Err(_) => {
-                    if !error_out.is_null() {
-                        let err_msg = CString::new("Invalid UTF-8 in symbols").unwrap();
-                        unsafe { *error_out = err_msg.into_raw(); }
-                    }
-                    return ptr::null_mut();
+                    return Err("Invalid UTF-8 in source".to_string());
                 }
             }
         };
 
-        match serde_json::from_str::<Vec<String>>(symbols_str) {
-            Ok(vec) => vec.iter().map(|s| s.as_str()).collect(),
-            Err(e) => {
-                if !error_out.is_null() {
-                    let err_msg = CString::new(format!("Invalid symbols JSON: {}", e)).unwrap();
-                    unsafe { *error_out = err_msg.into_raw(); }
+        // Defensive: Check source size
+        if source_str.is_empty() {
+            return Err("source is empty".to_string());
+        }
+        if source_str.len() > MAX_SOURCE_SIZE {
+            return Err(format!(
+                "source too large: {} bytes (max: {} bytes)",
+                source_str.len(),
+                MAX_SOURCE_SIZE
+            ));
+        }
+
+        let symbols: Vec<String> = if symbols_json.is_null() {
+            Vec::new()
+        } else {
+            let symbols_str = unsafe {
+                match CStr::from_ptr(symbols_json).to_str() {
+                    Ok(s) => s,
+                    Err(_) => {
+                        return Err("Invalid UTF-8 in symbols".to_string());
+                    }
                 }
-                return ptr::null_mut();
+            };
+
+            // Defensive: Check symbols JSON size
+            if symbols_str.len() > MAX_JSON_SIZE {
+                return Err(format!(
+                    "symbols JSON too large: {} bytes (max: {} bytes)",
+                    symbols_str.len(),
+                    MAX_JSON_SIZE
+                ));
+            }
+
+            match serde_json::from_str::<Vec<String>>(symbols_str) {
+                Ok(vec) => {
+                    // Defensive: Check symbols count
+                    if vec.len() > MAX_SYMBOLS_COUNT {
+                        return Err(format!(
+                            "Too many symbols: {} (max: {})",
+                            vec.len(),
+                            MAX_SYMBOLS_COUNT
+                        ));
+                    }
+
+                    // Defensive: Validate each symbol
+                    for sym in &vec {
+                        if sym.is_empty() {
+                            return Err("Symbol cannot be empty".to_string());
+                        }
+                        if sym.len() > 1000 {
+                            return Err(format!(
+                                "Symbol too long: {} bytes (max: 1000)",
+                                sym.len()
+                            ));
+                        }
+                    }
+
+                    vec
+                }
+                Err(e) => {
+                    return Err(format!("Invalid symbols JSON: {}", e));
+                }
+            }
+        };
+
+        let symbols_refs: Vec<&str> = symbols.iter().map(|s| s.as_str()).collect();
+
+        match compile(source_str, &symbols_refs) {
+            Ok(program) => {
+                let boxed = Box::new(AmoskeagProgram { program });
+                Ok(Box::into_raw(boxed))
+            }
+            Err(e) => {
+                Err(format!("{:?}", e))
             }
         }
-    };
+    });
 
-    match compile(source_str, &symbols) {
-        Ok(program) => {
-            let boxed = Box::new(AmoskeagProgram { program });
-            Box::into_raw(boxed)
-        }
-        Err(e) => {
+    // Handle the result of panic::catch_unwind
+    match result {
+        Ok(Ok(program_ptr)) => program_ptr,
+        Ok(Err(error_msg)) => {
             if !error_out.is_null() {
-                let err_msg = CString::new(format!("{:?}", e)).unwrap();
-                unsafe { *error_out = err_msg.into_raw(); }
+                if let Ok(err_cstring) = CString::new(error_msg) {
+                    unsafe { *error_out = err_cstring.into_raw(); }
+                }
+            }
+            ptr::null_mut()
+        }
+        Err(_panic) => {
+            if !error_out.is_null() {
+                if let Ok(err_cstring) = CString::new("Panic occurred during compilation") {
+                    unsafe { *error_out = err_cstring.into_raw(); }
+                }
             }
             ptr::null_mut()
         }
@@ -161,76 +268,109 @@ pub extern "C" fn amoskeag_evaluate(
     data_json: *const c_char,
     error_out: *mut *mut c_char,
 ) -> *mut c_char {
-    if program.is_null() || data_json.is_null() {
-        return ptr::null_mut();
-    }
+    // Defensive: Catch panics to prevent unwinding into C/Ruby
+    let result = panic::catch_unwind(|| {
+        // Defensive: Validate pointers
+        if program.is_null() {
+            return Err("program pointer is null".to_string());
+        }
+        if data_json.is_null() {
+            return Err("data_json pointer is null".to_string());
+        }
 
-    let program = unsafe { &*program };
+        let program_ref = unsafe { &*program };
 
-    let data_str = unsafe {
-        match CStr::from_ptr(data_json).to_str() {
-            Ok(s) => s,
-            Err(_) => {
-                if !error_out.is_null() {
-                    let err_msg = CString::new("Invalid UTF-8 in data").unwrap();
-                    unsafe { *error_out = err_msg.into_raw(); }
+        let data_str = unsafe {
+            match CStr::from_ptr(data_json).to_str() {
+                Ok(s) => s,
+                Err(_) => {
+                    return Err("Invalid UTF-8 in data".to_string());
                 }
-                return ptr::null_mut();
+            }
+        };
+
+        // Defensive: Check data JSON size
+        if data_str.len() > MAX_JSON_SIZE {
+            return Err(format!(
+                "data JSON too large: {} bytes (max: {} bytes)",
+                data_str.len(),
+                MAX_JSON_SIZE
+            ));
+        }
+
+        // Parse JSON data
+        let json_data: serde_json::Value = match serde_json::from_str(data_str) {
+            Ok(v) => v,
+            Err(e) => {
+                return Err(format!("Invalid data JSON: {}", e));
+            }
+        };
+
+        // Convert to HashMap<String, Value>
+        let mut data = HashMap::new();
+        if let serde_json::Value::Object(obj) = json_data {
+            // Defensive: Check data object size
+            if obj.len() > 100_000 {
+                return Err(format!("Data object too large: {} keys (max: 100,000)", obj.len()));
+            }
+
+            for (k, v) in obj.iter() {
+                match json_value_to_value(v) {
+                    Ok(value) => { data.insert(k.clone(), value); }
+                    Err(e) => {
+                        return Err(format!("Data conversion error: {}", e));
+                    }
+                }
+            }
+        } else {
+            return Err("Data must be a JSON object".to_string());
+        }
+
+        match evaluate(&program_ref.program, &data) {
+            Ok(result) => {
+                match value_to_json(&result) {
+                    Ok(json) => {
+                        // Defensive: Check result size
+                        if json.len() > MAX_JSON_SIZE {
+                            return Err(format!(
+                                "Result JSON too large: {} bytes (max: {} bytes)",
+                                json.len(),
+                                MAX_JSON_SIZE
+                            ));
+                        }
+
+                        match CString::new(json) {
+                            Ok(c_str) => Ok(c_str.into_raw()),
+                            Err(_) => Err("Result contains null bytes".to_string()),
+                        }
+                    }
+                    Err(e) => {
+                        Err(format!("Result conversion error: {}", e))
+                    }
+                }
+            }
+            Err(e) => {
+                Err(format!("{:?}", e))
             }
         }
-    };
+    });
 
-    // Parse JSON data
-    let json_data: serde_json::Value = match serde_json::from_str(data_str) {
-        Ok(v) => v,
-        Err(e) => {
+    // Handle the result of panic::catch_unwind
+    match result {
+        Ok(Ok(result_ptr)) => result_ptr,
+        Ok(Err(error_msg)) => {
             if !error_out.is_null() {
-                let err_msg = CString::new(format!("Invalid data JSON: {}", e)).unwrap();
-                unsafe { *error_out = err_msg.into_raw(); }
-            }
-            return ptr::null_mut();
-        }
-    };
-
-    // Convert to HashMap<String, Value>
-    let mut data = HashMap::new();
-    if let serde_json::Value::Object(obj) = json_data {
-        for (k, v) in obj.iter() {
-            match json_value_to_value(v) {
-                Ok(value) => { data.insert(k.clone(), value); }
-                Err(e) => {
-                    if !error_out.is_null() {
-                        let err_msg = CString::new(format!("Data conversion error: {}", e)).unwrap();
-                        unsafe { *error_out = err_msg.into_raw(); }
-                    }
-                    return ptr::null_mut();
+                if let Ok(err_cstring) = CString::new(error_msg) {
+                    unsafe { *error_out = err_cstring.into_raw(); }
                 }
             }
+            ptr::null_mut()
         }
-    }
-
-    match evaluate(&program.program, &data) {
-        Ok(result) => {
-            match value_to_json(&result) {
-                Ok(json) => {
-                    match CString::new(json) {
-                        Ok(c_str) => c_str.into_raw(),
-                        Err(_) => ptr::null_mut(),
-                    }
-                }
-                Err(e) => {
-                    if !error_out.is_null() {
-                        let err_msg = CString::new(format!("Result conversion error: {}", e)).unwrap();
-                        unsafe { *error_out = err_msg.into_raw(); }
-                    }
-                    ptr::null_mut()
-                }
-            }
-        }
-        Err(e) => {
+        Err(_panic) => {
             if !error_out.is_null() {
-                let err_msg = CString::new(format!("{:?}", e)).unwrap();
-                unsafe { *error_out = err_msg.into_raw(); }
+                if let Ok(err_cstring) = CString::new("Panic occurred during evaluation") {
+                    unsafe { *error_out = err_cstring.into_raw(); }
+                }
             }
             ptr::null_mut()
         }
@@ -238,21 +378,31 @@ pub extern "C" fn amoskeag_evaluate(
 }
 
 /// Free a compiled program
+/// Defensive: Safe to call with null pointer, safe to call multiple times (though not recommended)
 #[no_mangle]
 pub extern "C" fn amoskeag_program_free(program: *mut AmoskeagProgram) {
-    if !program.is_null() {
-        unsafe {
-            let _ = Box::from_raw(program);
+    // Defensive: Catch panics during deallocation
+    let _ = panic::catch_unwind(|| {
+        if !program.is_null() {
+            unsafe {
+                // Convert back to Box and drop
+                let _ = Box::from_raw(program);
+            }
         }
-    }
+    });
 }
 
 /// Free a string returned by the library
+/// Defensive: Safe to call with null pointer, safe to call multiple times (though not recommended)
 #[no_mangle]
 pub extern "C" fn amoskeag_string_free(s: *mut c_char) {
-    if !s.is_null() {
-        unsafe {
-            let _ = CString::from_raw(s);
+    // Defensive: Catch panics during deallocation
+    let _ = panic::catch_unwind(|| {
+        if !s.is_null() {
+            unsafe {
+                // Convert back to CString and drop
+                let _ = CString::from_raw(s);
+            }
         }
-    }
+    });
 }

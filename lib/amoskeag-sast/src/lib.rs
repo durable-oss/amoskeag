@@ -146,7 +146,7 @@ mod tests {
     fn test_analyze_division_by_zero() {
         let expr = parse("10 / 0").unwrap();
         let result = analyze(&expr, &[]);
-        assert!(result.errors.len() > 0);
+        assert!(!result.errors.is_empty());
         // Check for division by zero (case insensitive)
         let has_div_zero = result.errors.iter().any(|e| e.message.to_lowercase().contains("division"));
         if !has_div_zero {
@@ -163,7 +163,7 @@ mod tests {
         let expr = parse("10 / x").unwrap();
         let result = analyze(&expr, &[]);
         // Should find a vulnerable input where x = 0
-        assert!(result.vulnerable_inputs.len() > 0 || result.errors.len() > 0);
+        assert!(!result.vulnerable_inputs.is_empty() || !result.errors.is_empty());
     }
 
     #[test]

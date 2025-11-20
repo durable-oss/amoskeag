@@ -440,7 +440,7 @@ mod tests {
         let mut detector = ErrorDetector::new();
         let expr = parse("10 / 0").unwrap();
         let errors = detector.detect(&expr, &[], &HashMap::new());
-        assert!(errors.len() > 0);
+        assert!(!errors.is_empty());
         assert!(errors.iter().any(|e| matches!(e.category, ErrorCategory::DivisionByZero)));
     }
 

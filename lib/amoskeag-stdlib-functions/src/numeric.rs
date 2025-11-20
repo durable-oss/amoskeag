@@ -419,7 +419,7 @@ pub fn rate(nper: &Value, pmt: &Value, pv: &Value) -> Result<Value, FunctionErro
                 rate = new_rate;
 
                 // Ensure rate stays in reasonable bounds
-                if rate < -0.99 || rate > 10.0 {
+                if !(-0.99..=10.0).contains(&rate) {
                     return Err(FunctionError::ArgumentError {
                         message: "rate calculation did not converge to a reasonable value".to_string(),
                     });
@@ -562,7 +562,7 @@ pub fn irr(values: &Value) -> Result<Value, FunctionError> {
                 rate = new_rate;
 
                 // Ensure rate stays in reasonable bounds
-                if rate < -0.99 || rate > 100.0 {
+                if !(-0.99..=100.0).contains(&rate) {
                     return Err(FunctionError::ArgumentError {
                         message: "IRR calculation did not converge to a reasonable value".to_string(),
                     });
@@ -1195,10 +1195,12 @@ mod tests {
 
     #[test]
     fn test_round() {
-        assert_eq!(
-            round(&Value::Number(3.14159), &Value::Number(2.0)).unwrap(),
-            Value::Number(3.14)
-        );
+        let result = round(&Value::Number(1.23456), &Value::Number(2.0)).unwrap();
+        if let Value::Number(n) = result {
+            assert!((n - 1.23).abs() < 0.001);
+        } else {
+            panic!("Expected Number");
+        }
         assert_eq!(
             round(&Value::Number(3.5), &Value::Number(0.0)).unwrap(),
             Value::Number(4.0)

@@ -193,6 +193,7 @@ impl ConstraintSolver {
         variables.into_iter().collect()
     }
 
+    #[allow(clippy::only_used_in_recursion)]
     fn extract_variables_from_constraint(&self, constraint: &Constraint, variables: &mut std::collections::HashSet<String>) {
         match constraint {
             Constraint::Equal { variable, .. } |
@@ -246,13 +247,13 @@ impl ConstraintSolver {
 
     fn solve_with_backtracking(&self, variables: &[String]) -> Option<Solution> {
         // Try a few common values for each variable
-        let test_values = vec![-1000.0, -100.0, -10.0, -1.0, 0.0, 1.0, 10.0, 100.0, 1000.0];
+        let test_values = [-1000.0, -100.0, -10.0, -1.0, 0.0, 1.0, 10.0, 100.0, 1000.0];
 
         // Try different combinations (limited search space)
-        for i in 0..test_values.len().min(3) {
+        for &test_value in test_values.iter().take(3) {
             let mut solution = Solution::new();
             for variable in variables {
-                solution.assign(variable.clone(), test_values[i]);
+                solution.assign(variable.clone(), test_value);
             }
 
             if self.constraints.iter().all(|c| c.is_satisfied(&solution)) {
@@ -318,7 +319,7 @@ mod tests {
         let solution = solver.solve().unwrap();
         assert!(solution.satisfies);
         let x = solution.values.get("x").unwrap();
-        assert!(x >= &10.0 && x <= &20.0);
+        assert!((&10.0..=&20.0).contains(&x));
     }
 
     #[test]

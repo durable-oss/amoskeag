@@ -87,7 +87,7 @@ impl DataFlowGraph {
         if let Some(node) = self.nodes.get_mut(node_id) {
             node.defines.insert(variable.clone());
         }
-        self.definitions.entry(variable).or_insert_with(Vec::new).push(node_id);
+        self.definitions.entry(variable).or_default().push(node_id);
     }
 
     /// Record a variable use at a node
@@ -95,7 +95,7 @@ impl DataFlowGraph {
         if let Some(node) = self.nodes.get_mut(node_id) {
             node.uses.insert(variable.clone());
         }
-        self.uses.entry(variable).or_insert_with(Vec::new).push(node_id);
+        self.uses.entry(variable).or_default().push(node_id);
     }
 
     /// Compute liveness analysis
@@ -398,7 +398,7 @@ mod tests {
         let expr = parse("x + 1").unwrap();
         let graph = analyzer.analyze(&expr);
 
-        assert!(graph.nodes.len() > 0);
+        assert!(!graph.nodes.is_empty());
     }
 
     #[test]

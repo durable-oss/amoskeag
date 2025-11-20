@@ -354,7 +354,7 @@ mod tests {
         let expr = parse("10 / x").unwrap();
         let vulnerabilities = analyzer.analyze(&expr, &[], &HashMap::new());
 
-        assert!(vulnerabilities.len() > 0);
+        assert!(!vulnerabilities.is_empty());
         assert!(vulnerabilities.iter().any(|v| v.error_type == "DivisionByZero"));
     }
 
@@ -362,11 +362,11 @@ mod tests {
     fn test_conditional_division_by_zero() {
         let mut analyzer = AlgebraicAnalyzer::new();
         let expr = parse("if x > 0 10 / x else 0 end").unwrap();
-        let vulnerabilities = analyzer.analyze(&expr, &[], &HashMap::new());
+        let _vulnerabilities = analyzer.analyze(&expr, &[], &HashMap::new());
 
         // Should still find the vulnerability in the then branch
         // (even though there's a condition, the condition doesn't prevent x from being 0 in practice)
-        assert!(vulnerabilities.len() >= 0); // May or may not find depending on path sensitivity
+        // May or may not find depending on path sensitivity
     }
 
     #[test]

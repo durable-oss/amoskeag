@@ -84,6 +84,71 @@ case "$CMD" in
         cargo zigbuild --target x86_64-unknown-linux-musl --release
         ;;
 
+    musl-static)
+        check_zigbuild
+        info "Building static musl binaries for all targets..."
+
+        TARGETS=("x86_64-unknown-linux-musl" "aarch64-unknown-linux-musl")
+
+        # Build shared library (.so) for each target (dynamic linking)
+        info "Building shared library (.so)..."
+        for target in "${TARGETS[@]}"; do
+            info "  Building libamoskeag.so for $target..."
+            RUSTFLAGS="-C target-feature=-crt-static" cargo zigbuild --target "$target" --release -p amoskeag --lib
+        done
+
+        # Build executable binary for each target (static linking)
+        info "Building executable binary..."
+        for target in "${TARGETS[@]}"; do
+            info "  Building amoskeag CLI for $target..."
+            RUSTFLAGS="-C target-feature=+crt-static" cargo zigbuild --target "$target" --release -p amoskeag-cli
+        done
+
+        info "Build complete!"
+        info ""
+        info "Outputs:"
+        for target in "${TARGETS[@]}"; do
+            info "  Target: $target"
+            info "    Shared library (.so): target/$target/release/libamoskeag.so"
+            info "    Static library (.a):  target/$target/release/libamoskeag.a"
+            info "    Executable binary:    target/$target/release/amoskeag (statically linked)"
+        done
+        ;;
+
+    so-only)
+        check_zigbuild
+        info "Building only shared library (.so) for all musl targets..."
+
+        TARGETS=("x86_64-unknown-linux-musl" "aarch64-unknown-linux-musl")
+
+        for target in "${TARGETS[@]}"; do
+            info "  Building libamoskeag.so for $target..."
+            RUSTFLAGS="-C target-feature=-crt-static" cargo zigbuild --target "$target" --release -p amoskeag --lib
+        done
+
+        info "Build complete!"
+        for target in "${TARGETS[@]}"; do
+            info "  Shared library: target/$target/release/libamoskeag.so"
+        done
+        ;;
+
+    bin-only)
+        check_zigbuild
+        info "Building only executable binary for all musl targets..."
+
+        TARGETS=("x86_64-unknown-linux-musl" "aarch64-unknown-linux-musl")
+
+        for target in "${TARGETS[@]}"; do
+            info "  Building amoskeag CLI for $target..."
+            RUSTFLAGS="-C target-feature=+crt-static" cargo zigbuild --target "$target" --release -p amoskeag-cli
+        done
+
+        info "Build complete!"
+        for target in "${TARGETS[@]}"; do
+            info "  Executable: target/$target/release/amoskeag (statically linked)"
+        done
+        ;;
+
     install-tools)
         info "Installing cargo-zigbuild..."
         cargo install cargo-zigbuild
@@ -107,5 +172,10 @@ case "$CMD" in
         echo "  linux-x64     - Build for Linux x86_64"
         echo "  linux-arm64   - Build for Linux ARM64"
         echo "  linux-musl    - Build for Linux x86_64 (musl)"
+        echo ""
+        echo "Static musl builds:"
+        echo "  musl-static   - Build both .so and binary for x86_64 and aarch64 (musl)"
+        echo "  so-only       - Build only shared library (.so) for musl targets"
+        echo "  bin-only      - Build only executable binary for musl targets"
         ;;
 esac

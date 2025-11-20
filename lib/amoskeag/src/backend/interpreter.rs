@@ -67,7 +67,7 @@ impl Backend for InterpreterBackend {
         // For now, we'll use the AST directly
         // This is a bit of a hack, but works for the interface
         compile(&format!("{:?}", expr), symbols)
-            .map_err(|e| BackendError::CompileError(e))
+            .map_err(BackendError::CompileError)
     }
 
     fn execute(
@@ -76,7 +76,7 @@ impl Backend for InterpreterBackend {
         data: &HashMap<String, Value>,
     ) -> BackendResult<Self::ExecutionResult> {
         evaluate(compiled, data)
-            .map_err(|e| BackendError::EvalError(e))
+            .map_err(BackendError::EvalError)
     }
 
     fn supports(&self, _expr: &Expr) -> bool {
@@ -164,7 +164,7 @@ impl Backend for DirectInterpreterBackend {
 
         let context = Context::new(data.clone());
         eval_expr(&compiled.expr, &context)
-            .map_err(|e| BackendError::EvalError(e))
+            .map_err(BackendError::EvalError)
     }
 
     fn supports(&self, _expr: &Expr) -> bool {
@@ -380,6 +380,6 @@ mod tests {
         let caps = DirectInterpreterBackend::capabilities();
         assert_eq!(caps.name, "direct-interpreter");
         assert!(!caps.supported_features.is_empty());
-        assert_eq!(caps.requires_external_deps, false);
+        assert!(!caps.requires_external_deps);
     }
 }

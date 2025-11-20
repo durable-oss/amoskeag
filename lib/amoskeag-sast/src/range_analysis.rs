@@ -112,13 +112,13 @@ impl ValueRange {
             (ValueRange::Exact(a), ValueRange::Exact(b)) => ValueRange::Exact(a * b),
             (ValueRange::Exact(a), ValueRange::Range { min, max }) |
             (ValueRange::Range { min, max }, ValueRange::Exact(a)) => {
-                let corners = vec![a * min, a * max];
+                let corners = [a * min, a * max];
                 let min_val = corners.iter().cloned().fold(f64::INFINITY, f64::min);
                 let max_val = corners.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
                 ValueRange::Range { min: min_val, max: max_val }
             }
             (ValueRange::Range { min: min1, max: max1 }, ValueRange::Range { min: min2, max: max2 }) => {
-                let corners = vec![
+                let corners = [
                     min1 * min2,
                     min1 * max2,
                     max1 * min2,
@@ -142,20 +142,20 @@ impl ValueRange {
         match (self, other) {
             (ValueRange::Exact(a), ValueRange::Exact(b)) if *b != 0.0 => ValueRange::Exact(a / b),
             (ValueRange::Exact(a), ValueRange::Range { min, max }) if *min != 0.0 && *max != 0.0 => {
-                let corners = vec![a / min, a / max];
+                let corners = [a / min, a / max];
                 let min_val = corners.iter().cloned().fold(f64::INFINITY, f64::min);
                 let max_val = corners.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
                 ValueRange::Range { min: min_val, max: max_val }
             }
             (ValueRange::Range { min, max }, ValueRange::Exact(a)) if *a != 0.0 => {
-                let corners = vec![min / a, max / a];
+                let corners = [min / a, max / a];
                 let min_val = corners.iter().cloned().fold(f64::INFINITY, f64::min);
                 let max_val = corners.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
                 ValueRange::Range { min: min_val, max: max_val }
             }
             (ValueRange::Range { min: min1, max: max1 }, ValueRange::Range { min: min2, max: max2 })
                 if *min2 != 0.0 && *max2 != 0.0 => {
-                let corners = vec![
+                let corners = [
                     min1 / min2,
                     min1 / max2,
                     max1 / min2,

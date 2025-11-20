@@ -3,13 +3,16 @@ name = "amoskeag-ffi"
 version = "0.1.0"
 edition = "2021"
 
+# Exclude from parent workspace
+[workspace]
+
 [lib]
 name = "amoskeag_ffi"
 crate-type = ["staticlib"]
 
 [dependencies]
-amoskeag = { path = "../../lib/amoskeag" }
-amoskeag-stdlib-operators = { path = "../../lib/amoskeag-stdlib-operators" }
+amoskeag = { path = "../../../lib/amoskeag" }
+amoskeag-stdlib-operators = { path = "../../../lib/amoskeag-stdlib-operators" }
 serde_json = "1.0"
 libc = "0.2"
 

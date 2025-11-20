@@ -8,7 +8,7 @@ fn test_end_to_end_division_by_zero() {
     let expr = parse("10 / 0").unwrap();
     let result = analyze(&expr, &[]);
 
-    assert!(result.errors.len() > 0);
+    assert!(!result.errors.is_empty());
     assert!(result.errors.iter().any(|e| e.message.to_lowercase().contains("division")));
     assert_eq!(result.statistics.critical_errors, 1);
 }
@@ -19,9 +19,9 @@ fn test_end_to_end_potential_division_by_zero() {
     let result = analyze(&expr, &[]);
 
     // Should find either an error or a vulnerable input
-    assert!(result.errors.len() > 0 || result.vulnerable_inputs.len() > 0);
+    assert!(!result.errors.is_empty() || !result.vulnerable_inputs.is_empty());
 
-    if result.vulnerable_inputs.len() > 0 {
+    if !result.vulnerable_inputs.is_empty() {
         assert!(result.vulnerable_inputs.iter().any(|v| v.error_type == "DivisionByZero"));
     }
 }
@@ -31,7 +31,7 @@ fn test_end_to_end_unreachable_code() {
     let expr = parse("if true :yes else :no end").unwrap();
     let result = analyze(&expr, &[]);
 
-    assert!(result.errors.len() > 0);
+    assert!(!result.errors.is_empty());
     assert!(result.errors.iter().any(|e| e.message.contains("unreachable")));
 }
 
@@ -66,7 +66,7 @@ fn test_end_to_end_complex_expression() {
     let result = analyze(&expr, &[]);
 
     // Should detect division by zero in else branch
-    assert!(result.errors.len() > 0);
+    assert!(!result.errors.is_empty());
     assert!(result.errors.iter().any(|e| e.message.to_lowercase().contains("division")));
 }
 
@@ -87,7 +87,7 @@ fn test_array_out_of_bounds() {
     let expr = parse("at([1, 2, 3], 10)").unwrap();
     let result = analyze(&expr, &[]);
 
-    assert!(result.errors.len() > 0);
+    assert!(!result.errors.is_empty());
     assert!(result.errors.iter().any(|e| e.message.contains("out of bounds")));
 }
 
@@ -108,7 +108,7 @@ fn test_nested_if_expressions() {
     let result = analyze(&expr, &[]);
 
     // Should detect division by zero in nested else (may be in errors or vulnerable_inputs)
-    let has_issue = result.errors.len() > 0 || result.vulnerable_inputs.len() > 0;
+    let has_issue = !result.errors.is_empty() || !result.vulnerable_inputs.is_empty();
     assert!(has_issue);
 }
 
@@ -152,7 +152,7 @@ fn test_function_call_analysis() {
     let result = analyze(&expr, &[]);
 
     // Should detect division by zero in function call
-    assert!(result.errors.len() > 0);
+    assert!(!result.errors.is_empty());
 }
 
 #[test]
@@ -173,5 +173,5 @@ fn test_statistics_accuracy() {
     let result = analyze(&expr, &[]);
 
     assert_eq!(result.statistics.critical_errors, 1);
-    assert!(result.statistics.total_expressions >= 0);
+    // total_expressions is always >= 0 by definition (it's unsigned)
 }
