@@ -5,7 +5,7 @@
 //!
 //! Run with: cargo run --example javascript_transpiler_demo
 
-use amoskeag_javascript_transpiler::{transpile_source, TranspileConfig};
+use amoskeag_transpiler_javascript::{transpile_source, TranspileConfig};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Amoskeag JavaScript Transpiler Demo");

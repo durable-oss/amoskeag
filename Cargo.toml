@@ -4,8 +4,8 @@ members = [
     "lib/amoskeag",
     "lib/amoskeag-lexer",
     "lib/amoskeag-parser",
-    "lib/amoskeag-python-transpiler",
-    "lib/amoskeag-javascript-transpiler",
+    "lib/amoskeag-transpiler-python",
+    "lib/amoskeag-transpiler-javascript",
     "lib/amoskeag-stdlib-operators",
     "lib/amoskeag-stdlib-functions",
     "lib/amoskeag-transpiler",
@@ -46,3 +46,18 @@ strip = true
 [profile.dev]
 opt-level = 0
 debug = true
+
+# Code coverage configuration for cargo-tarpaulin
+[workspace.metadata.tarpaulin]
+# Run tests with all features enabled
+all-features = true
+# Output formats
+out = ["Html", "Lcov"]
+# Output directory for coverage reports
+output-dir = "target/coverage"
+# Exclude test files from coverage
+exclude-files = ["**/tests/**", "**/test_*.rs"]
+# Timeout per test in seconds
+timeout = "120s"
+# Run in verbose mode
+verbose = true

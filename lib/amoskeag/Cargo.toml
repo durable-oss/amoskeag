@@ -15,7 +15,7 @@ amoskeag-lexer = { path = "../amoskeag-lexer" }
 amoskeag-parser = { path = "../amoskeag-parser" }
 amoskeag-stdlib-operators = { path = "../amoskeag-stdlib-operators" }
 amoskeag-stdlib-functions = { path = "../amoskeag-stdlib-functions" }
-amoskeag-javascript-transpiler = { path = "../amoskeag-javascript-transpiler", optional = true }
+amoskeag-transpiler-javascript = { path = "../amoskeag-transpiler-javascript", optional = true }
 thiserror.workspace = true
 anyhow.workspace = true
 
@@ -30,4 +30,4 @@ path = "../../examples/backend-comparison.rs"
 [[example]]
 name = "javascript_transpiler_demo"
 path = "../../examples/javascript_transpiler_demo.rs"
-required-features = ["amoskeag-javascript-transpiler"]
+required-features = ["amoskeag-transpiler-javascript"]

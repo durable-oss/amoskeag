@@ -1,5 +1,5 @@
 [package]
-name = "amoskeag-javascript-transpiler"
+name = "amoskeag-transpiler-javascript"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true

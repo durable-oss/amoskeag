@@ -1,5 +1,5 @@
 [package]
-name = "amoskeag-python-transpiler"
+name = "amoskeag-transpiler-python"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true

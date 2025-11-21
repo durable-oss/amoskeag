@@ -11,4 +11,4 @@ name = "transpile-rule"
 path = "src/main.rs"
 
 [dependencies]
-amoskeag-python-transpiler = { path = "../../lib/amoskeag-python-transpiler" }
+amoskeag-transpiler-python = { path = "../../lib/amoskeag-transpiler-python" }

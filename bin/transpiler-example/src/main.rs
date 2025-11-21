@@ -3,7 +3,7 @@
 //! This example demonstrates how to use the amoskeag-python-transpiler
 //! to convert Amoskeag code into executable Python code.
 
-use amoskeag_python_transpiler::{transpile_source, TranspileConfig};
+use amoskeag_transpiler_python::{transpile_source, TranspileConfig};
 use std::fs;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
