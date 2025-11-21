@@ -19,7 +19,7 @@ Gem::Specification.new do |spec|
     for maximum performance and security.
   DESC
 
-  spec.homepage      = "https://github.com/durableprogramming/amoskeag"
+  spec.homepage      = "https://github.com/durable-oss/amoskeag"
   spec.license       = "MIT"
   spec.required_ruby_version = ">= 2.7.0"
 
@@ -62,7 +62,7 @@ Gem::Specification.new do |spec|
       require 'amoskeag-rb'
       result = Amoskeag.eval("2 + 2", {})  # => 4.0
 
-    Documentation: https://github.com/durableprogramming/amoskeag
+    Documentation: https://github.com/durable-oss/amoskeag
 
   MSG
 end

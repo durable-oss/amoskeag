@@ -1,6 +1,6 @@
 # Amoskeag Ruby Gem
 
-Native Ruby bindings for [Amoskeag](https://github.com/durableprogramming/amoskeag) - a secure, purely functional DSL for business rules, templates, and spreadsheet formulas.
+Native Ruby bindings for [Amoskeag](https://github.com/durable-oss/amoskeag) - a secure, purely functional DSL for business rules, templates, and spreadsheet formulas.
 
 ## Features
 
@@ -286,7 +286,7 @@ results = threads.map(&:value)
 
 ```bash
 # Clone the repository
-git clone https://github.com/durableprogramming/amoskeag.git
+git clone https://github.com/durable-oss/amoskeag.git
 cd amoskeag
 
 # Build and install the gem
@@ -324,13 +324,13 @@ MIT
 
 ## Contributing
 
-Contributions are welcome! Please see the main [Amoskeag repository](https://github.com/durableprogramming/amoskeag) for contribution guidelines.
+Contributions are welcome! Please see the main [Amoskeag repository](https://github.com/durable-oss/amoskeag) for contribution guidelines.
 
 ## Support
 
-- GitHub Issues: https://github.com/durableprogramming/amoskeag/issues
-- Documentation: https://github.com/durableprogramming/amoskeag
+- GitHub Issues: https://github.com/durable-oss/amoskeag/issues
+- Documentation: https://github.com/durable-oss/amoskeag
 
 ## Credits
 
-Amoskeag is built by [Durable Programming](https://github.com/durableprogramming) with a focus on security, correctness, and developer experience.
+Amoskeag is built by [Durable Programming](https://github.com/durable-oss) with a focus on security, correctness, and developer experience.

@@ -1,6 +1,6 @@
 # Amoskeag Python Transpiler
 
-A transpiler that converts [Amoskeag](https://github.com/durableprogramming/amoskeag) code into executable Python code.
+A transpiler that converts [Amoskeag](https://github.com/durable-oss/amoskeag) code into executable Python code.
 
 ## Overview
 
