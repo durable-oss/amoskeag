@@ -1,7 +1,7 @@
 [build]
-# Use zigbuild as the default linker
 target-dir = "target"
 
+# Native Linux builds
 [target.x86_64-unknown-linux-gnu]
 linker = "clang"
 rustflags = ["-C", "link-arg=-fuse-ld=lld"]
@@ -10,10 +10,12 @@ rustflags = ["-C", "link-arg=-fuse-ld=lld"]
 linker = "clang"
 rustflags = ["-C", "link-arg=-fuse-ld=lld"]
 
+# Static musl builds via zigbuild (use: cargo zigbuild --target x86_64-unknown-linux-musl)
 [target.x86_64-unknown-linux-musl]
-linker = "clang"
-rustflags = ["-C", "link-arg=-fuse-ld=lld"]
+rustflags = ["-C", "target-feature=+crt-static"]
 
 [target.aarch64-unknown-linux-musl]
-linker = "clang"
-rustflags = ["-C", "link-arg=-fuse-ld=lld"]
+rustflags = ["-C", "target-feature=+crt-static"]
+
+[target.armv7-unknown-linux-musleabihf]
+rustflags = ["-C", "target-feature=+crt-static"]
