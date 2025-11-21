@@ -94,36 +94,36 @@ jobs:
           fpm -s dir -t deb \
             -n amoskeag \
             -v ${{ env.VERSION }} \
+            -a amd64 \
             --description "Amoskeag language CLI" \
             --license "MIT OR Apache-2.0" \
             --url "https://github.com/durable-oss/amoskeag" \
             -C pkg \
             usr/bin/amoskeag
-          mv *.deb amoskeag_${{ env.VERSION }}_amd64.deb
 
       - name: Build RPM package
         run: |
           fpm -s dir -t rpm \
             -n amoskeag \
             -v ${{ env.VERSION }} \
+            -a x86_64 \
             --description "Amoskeag language CLI" \
             --license "MIT OR Apache-2.0" \
             --url "https://github.com/durable-oss/amoskeag" \
             -C pkg \
             usr/bin/amoskeag
-          mv *.rpm amoskeag-${{ env.VERSION }}-1.x86_64.rpm
 
       - name: Build APK package
         run: |
           fpm -s dir -t apk \
             -n amoskeag \
             -v ${{ env.VERSION }} \
+            -a x86_64 \
             --description "Amoskeag language CLI" \
             --license "MIT OR Apache-2.0" \
             --url "https://github.com/durable-oss/amoskeag" \
             -C pkg \
             usr/bin/amoskeag
-          mv *.apk amoskeag-${{ env.VERSION }}.apk
 
       - name: Upload packages
         uses: actions/upload-artifact@v4
@@ -179,7 +179,7 @@ jobs:
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
-            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=latest
 
       - name: Create Dockerfile
         run: |
