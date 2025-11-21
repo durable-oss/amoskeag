@@ -77,22 +77,11 @@ pub fn evaluate_with_backend(
         BackendType::Interpreter => evaluate(program, data).map_err(|e| anyhow::anyhow!("{}", e)),
         #[cfg(feature = "jit")]
         BackendType::Jit => {
-            use amoskeag_jit::backend::JitBackend;
-
-            let backend = JitBackend::new();
-            let expr = get_program_ast(program);
-
-            if !backend.supports(expr) {
-                bail!(
-                    "JIT backend does not support this expression. \
-                     Try using --backend interpreter instead.\n\
-                     Note: JIT currently only supports numeric expressions without runtime data access."
-                );
-            }
-
-            backend
-                .compile_and_execute(expr, &[], data)
-                .map_err(|e| anyhow::anyhow!("JIT error: {}", e))
+            // JIT backend requires enterprise amoskeag-jit crate (not available in open-source version)
+            bail!(
+                "JIT backend is not available in the open-source version. \
+                 Try using --backend interpreter instead."
+            );
         }
     }
 }
