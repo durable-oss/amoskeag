@@ -1106,7 +1106,7 @@ mod tests {
             ("ceil(3.2)", Value::Number(4.0)),
             ("floor(3.8)", Value::Number(3.0)),
             ("round(3.5)", Value::Number(4.0)),
-            ("round(3.14159, 2)", Value::Number(3.15)),
+            ("round(3.14159, 2)", Value::Number(3.14)),
             ("plus(2, 3)", Value::Number(5.0)),
             ("minus(5, 3)", Value::Number(2.0)),
             ("times(4, 5)", Value::Number(20.0)),
