@@ -18,8 +18,7 @@ fn load_example(example_name: &str) -> String {
     path.push(example_name);
     path.push("example.amos");
 
-    fs::read_to_string(&path)
-        .unwrap_or_else(|_| panic!("Failed to load example: {}", example_name))
+    fs::read_to_string(&path).unwrap_or_else(|_| panic!("Failed to load example: {}", example_name))
 }
 
 /// Helper to create a dictionary value
@@ -27,10 +26,7 @@ fn dict<I>(items: I) -> Value
 where
     I: IntoIterator<Item = (&'static str, Value)>,
 {
-    let map: HashMap<String, Value> = items
-        .into_iter()
-        .map(|(k, v)| (k.to_string(), v))
-        .collect();
+    let map: HashMap<String, Value> = items.into_iter().map(|(k, v)| (k.to_string(), v)).collect();
     Value::Dictionary(map)
 }
 
@@ -81,7 +77,10 @@ fn test_05_string_operations() {
     let data = HashMap::new();
     let result = evaluate(&program, &data).expect("Evaluation failed");
 
-    assert_eq!(result, Value::String("Hello, amoskeag language!".to_string()));
+    assert_eq!(
+        result,
+        Value::String("Hello, amoskeag language!".to_string())
+    );
 }
 
 #[test]
@@ -193,15 +192,16 @@ fn test_10_business_rule_complex() {
 
     let underwriting_limits = dict([
         ("max_vehicle_value", Value::Number(100000.0)),
-        ("restricted_states", Value::Array(vec![
-            Value::String("FL".to_string()),
-            Value::String("LA".to_string()),
-        ])),
+        (
+            "restricted_states",
+            Value::Array(vec![
+                Value::String("FL".to_string()),
+                Value::String("LA".to_string()),
+            ]),
+        ),
     ]);
 
-    let env = dict([
-        ("underwriting_limits", underwriting_limits),
-    ]);
+    let env = dict([("underwriting_limits", underwriting_limits)]);
 
     let mut data = HashMap::new();
     data.insert("applicant".to_string(), applicant);
@@ -247,7 +247,10 @@ fn test_12_template_blog_post() {
     ]);
 
     let post = dict([
-        ("title", Value::String("Introduction to Amoskeag Programming".to_string())),
+        (
+            "title",
+            Value::String("Introduction to Amoskeag Programming".to_string()),
+        ),
         ("status", Value::String("published".to_string())),
         ("author", author),
     ]);
@@ -259,7 +262,9 @@ fn test_12_template_blog_post() {
 
     assert_eq!(
         result,
-        Value::String("[LIVE] INTRODUCTION TO AMOSKEAG PROGRAMMING by Jane Developer ✓".to_string())
+        Value::String(
+            "[LIVE] INTRODUCTION TO AMOSKEAG PROGRAMMING by Jane Developer ✓".to_string()
+        )
     );
 }
 
@@ -271,11 +276,14 @@ fn test_13_spreadsheet_formulas() {
     // Build the data context
     let mut data = HashMap::new();
     data.insert("B1".to_string(), Value::Number(2.0));
-    data.insert("B2".to_string(), Value::Array(vec![
-        Value::Number(0.10),
-        Value::Number(0.15),
-        Value::Number(0.20),
-    ]));
+    data.insert(
+        "B2".to_string(),
+        Value::Array(vec![
+            Value::Number(0.10),
+            Value::Number(0.15),
+            Value::Number(0.20),
+        ]),
+    );
     data.insert("B3".to_string(), Value::Number(1000.0));
 
     let result = evaluate(&program, &data).expect("Evaluation failed");
@@ -362,7 +370,9 @@ fn test_18_nested_data() {
 
     assert_eq!(
         result,
-        Value::String("TechCorp - Boston, MA (42.36, -71.06) - Contact: alice@techcorp.com".to_string())
+        Value::String(
+            "TechCorp - Boston, MA (42.36, -71.06) - Contact: alice@techcorp.com".to_string()
+        )
     );
 }
 
@@ -394,9 +404,18 @@ fn test_20_string_formatting() {
     let expected = dict([
         ("display_name", Value::String("John Doe".to_string())),
         ("email", Value::String("john.doe@company.com".to_string())),
-        ("bio_clean", Value::String("Software engineer with 10 years experience.".to_string())),
-        ("bio_short", Value::String("Software engineer with 10 year".to_string())), // truncate(30) cuts at 30 chars, no "..."
-        ("tags_joined", Value::String("rust, typescript, python".to_string())),
+        (
+            "bio_clean",
+            Value::String("Software engineer with 10 years experience.".to_string()),
+        ),
+        (
+            "bio_short",
+            Value::String("Software engineer with 10 year".to_string()),
+        ), // truncate(30) cuts at 30 chars, no "..."
+        (
+            "tags_joined",
+            Value::String("rust, typescript, python".to_string()),
+        ),
         ("tag_count", Value::Number(3.0)),
     ]);
 
@@ -433,8 +452,14 @@ fn test_22_date_operations() {
 
     let expected = dict([
         ("created_at", Value::String("2025-01-18".to_string())),
-        ("created_at_full", Value::String("2025-01-18 14:30:00".to_string())),
-        ("display", Value::String("Account created on 2025-01-18".to_string())),
+        (
+            "created_at_full",
+            Value::String("2025-01-18 14:30:00".to_string()),
+        ),
+        (
+            "display",
+            Value::String("Account created on 2025-01-18".to_string()),
+        ),
     ]);
 
     assert_eq!(result, expected);

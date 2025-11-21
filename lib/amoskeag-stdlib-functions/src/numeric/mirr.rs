@@ -9,7 +9,11 @@ use crate::{FunctionError, Value};
 /// and negative cash flows are financed at the financing rate
 ///
 /// Example: mirr([-10000, 3000, 4200, 6800], 0.1, 0.12) = modified IRR
-pub fn mirr(values: &Value, finance_rate: &Value, reinvest_rate: &Value) -> Result<Value, FunctionError> {
+pub fn mirr(
+    values: &Value,
+    finance_rate: &Value,
+    reinvest_rate: &Value,
+) -> Result<Value, FunctionError> {
     match (values, finance_rate, reinvest_rate) {
         (Value::Array(arr), Value::Number(fr), Value::Number(rr)) => {
             if arr.is_empty() {
@@ -53,7 +57,8 @@ pub fn mirr(values: &Value, finance_rate: &Value, reinvest_rate: &Value) -> Resu
 
             if pv_negative == 0.0 || fv_positive == 0.0 {
                 return Err(FunctionError::ArgumentError {
-                    message: "cash flows must contain both positive and negative values".to_string(),
+                    message: "cash flows must contain both positive and negative values"
+                        .to_string(),
                 });
             }
 

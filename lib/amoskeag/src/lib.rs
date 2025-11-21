@@ -16,7 +16,9 @@ use thiserror::Error;
 pub use amoskeag_stdlib_operators::Value as AmoskeagValue;
 
 // Re-export backend types
-pub use backend::{Backend, BackendCapabilities, BackendError, BackendRegistry, BackendResult, PerformanceTier};
+pub use backend::{
+    Backend, BackendCapabilities, BackendError, BackendRegistry, BackendResult, PerformanceTier,
+};
 
 /// Errors that can occur during compilation
 #[derive(Error, Debug)]
@@ -166,9 +168,7 @@ fn validate_ast(expr: &Expr, symbols: &HashSet<String>) -> Result<(), CompileErr
     match expr {
         Expr::Symbol(s) => {
             if !symbols.contains(s) {
-                return Err(CompileError::UndefinedSymbol {
-                    symbol: s.clone(),
-                });
+                return Err(CompileError::UndefinedSymbol { symbol: s.clone() });
             }
             Ok(())
         }
@@ -230,11 +230,9 @@ fn validate_ast(expr: &Expr, symbols: &HashSet<String>) -> Result<(), CompileErr
         }
 
         // Literals and variables don't need validation
-        Expr::Number(_)
-        | Expr::String(_)
-        | Expr::Boolean(_)
-        | Expr::Nil
-        | Expr::Variable(_) => Ok(()),
+        Expr::Number(_) | Expr::String(_) | Expr::Boolean(_) | Expr::Nil | Expr::Variable(_) => {
+            Ok(())
+        }
     }
 }
 
@@ -288,7 +286,7 @@ fn validate_function_call(name: &str, arg_count: usize) -> Result<(), CompileErr
         ("coalesce", (2, 2)),
         ("default", (2, 2)),
         // Financial functions - Time Value of Money
-        ("pmt", (3, 3)),
+        ("pmt", (4, 4)),
         ("pv", (3, 3)),
         ("fv", (4, 4)),
         ("nper", (3, 3)),
@@ -302,8 +300,8 @@ fn validate_function_call(name: &str, arg_count: usize) -> Result<(), CompileErr
         ("ddb", (4, 4)),
         ("db", (5, 5)),
         // Financial functions - Payment Components
-        ("ipmt", (4, 4)),
-        ("ppmt", (4, 4)),
+        ("ipmt", (5, 5)),
+        ("ppmt", (5, 5)),
         ("cumipmt", (6, 6)),
         ("cumprinc", (6, 6)),
         // Financial functions - Interest Rate Conversion
@@ -348,7 +346,10 @@ fn validate_function_call(name: &str, arg_count: usize) -> Result<(), CompileErr
 /// # Returns
 ///
 /// The result of the evaluation
-pub fn evaluate(program: &CompiledProgram, data: &HashMap<String, Value>) -> Result<Value, EvalError> {
+pub fn evaluate(
+    program: &CompiledProgram,
+    data: &HashMap<String, Value>,
+) -> Result<Value, EvalError> {
     let context = Context::new(data.clone());
     eval_expr(&program.ast, &context)
 }
@@ -415,7 +416,8 @@ pub fn eval_expr(expr: &Expr, context: &Context) -> Result<Value, EvalError> {
 
         // Function call
         Expr::FunctionCall { name, args } => {
-            let arg_values: Result<Vec<_>, _> = args.iter().map(|a| eval_expr(a, context)).collect();
+            let arg_values: Result<Vec<_>, _> =
+                args.iter().map(|a| eval_expr(a, context)).collect();
             let arg_values = arg_values?;
             call_function(name, &arg_values)
         }
@@ -592,7 +594,7 @@ fn call_function(name: &str, args: &[Value]) -> Result<Value, EvalError> {
         "default" => Ok(default(&args[0], &args[1])),
 
         // Financial functions - Time Value of Money
-        "pmt" => pmt(&args[0], &args[1], &args[2]).map_err(EvalError::from),
+        "pmt" => pmt(&args[0], &args[1], &args[2], &args[3]).map_err(EvalError::from),
         "pv" => pv(&args[0], &args[1], &args[2]).map_err(EvalError::from),
         "fv" => fv(&args[0], &args[1], &args[2], &args[3]).map_err(EvalError::from),
         "nper" => nper(&args[0], &args[1], &args[2]).map_err(EvalError::from),
@@ -609,8 +611,8 @@ fn call_function(name: &str, args: &[Value]) -> Result<Value, EvalError> {
         "db" => db(&args[0], &args[1], &args[2], &args[3], &args[4]).map_err(EvalError::from),
 
         // Financial functions - Payment Components
-        "ipmt" => ipmt(&args[0], &args[1], &args[2], &args[3]).map_err(EvalError::from),
-        "ppmt" => ppmt(&args[0], &args[1], &args[2], &args[3]).map_err(EvalError::from),
+        "ipmt" => ipmt(&args[0], &args[1], &args[2], &args[3], &args[4]).map_err(EvalError::from),
+        "ppmt" => ppmt(&args[0], &args[1], &args[2], &args[3], &args[4]).map_err(EvalError::from),
         "cumipmt" => cumipmt(&args[0], &args[1], &args[2], &args[3], &args[4], &args[5])
             .map_err(EvalError::from),
         "cumprinc" => cumprinc(&args[0], &args[1], &args[2], &args[3], &args[4], &args[5])
@@ -804,7 +806,12 @@ mod tests {
         let source = "upcase('hello', 'world')";
         let result = compile(source, &[]);
         assert!(result.is_err());
-        if let Err(CompileError::ArityMismatch { function, expected, actual }) = result {
+        if let Err(CompileError::ArityMismatch {
+            function,
+            expected,
+            actual,
+        }) = result
+        {
             assert_eq!(function, "upcase");
             assert_eq!(expected, "1");
             assert_eq!(actual, 2);
@@ -1056,16 +1063,31 @@ mod tests {
         let test_cases = vec![
             ("upcase('hello')", Value::String("HELLO".to_string())),
             ("downcase('HELLO')", Value::String("hello".to_string())),
-            ("capitalize('hello world')", Value::String("Hello world".to_string())),
+            (
+                "capitalize('hello world')",
+                Value::String("Hello world".to_string()),
+            ),
             ("strip('  hello  ')", Value::String("hello".to_string())),
-            ("split('a,b,c', ',')", Value::Array(vec![
-                Value::String("a".to_string()),
-                Value::String("b".to_string()),
-                Value::String("c".to_string()),
-            ])),
-            ("join(['a', 'b', 'c'], ',')", Value::String("a,b,c".to_string())),
-            ("truncate('hello world', 5)", Value::String("hello".to_string())),
-            ("replace('hello world', 'world', 'rust')", Value::String("hello rust".to_string())),
+            (
+                "split('a,b,c', ',')",
+                Value::Array(vec![
+                    Value::String("a".to_string()),
+                    Value::String("b".to_string()),
+                    Value::String("c".to_string()),
+                ]),
+            ),
+            (
+                "join(['a', 'b', 'c'], ',')",
+                Value::String("a,b,c".to_string()),
+            ),
+            (
+                "truncate('hello world', 5)",
+                Value::String("hello".to_string()),
+            ),
+            (
+                "replace('hello world', 'world', 'rust')",
+                Value::String("hello rust".to_string()),
+            ),
         ];
 
         for (source, expected) in test_cases {
@@ -1114,10 +1136,13 @@ mod tests {
             ("sum([1, 2, 3, 4])", Value::Number(10.0)),
             ("avg([1, 2, 3, 4])", Value::Number(2.5)),
             ("at([10, 20, 30], 1)", Value::Number(20.0)),
-            ("keys({'a': 1, 'b': 2})", Value::Array(vec![
-                Value::String("a".to_string()),
-                Value::String("b".to_string()),
-            ])),
+            (
+                "keys({'a': 1, 'b': 2})",
+                Value::Array(vec![
+                    Value::String("a".to_string()),
+                    Value::String("b".to_string()),
+                ]),
+            ),
         ];
 
         for (source, expected) in test_cases {
@@ -1147,10 +1172,22 @@ mod tests {
             ("is_array(42)", Value::Boolean(false)),
             ("is_dictionary({'a': 1})", Value::Boolean(true)),
             ("is_dictionary(42)", Value::Boolean(false)),
-            ("coalesce(nil, 'default')", Value::String("default".to_string())),
-            ("coalesce('value', 'default')", Value::String("value".to_string())),
-            ("default(nil, 'default')", Value::String("default".to_string())),
-            ("default('value', 'default')", Value::String("value".to_string())),
+            (
+                "coalesce(nil, 'default')",
+                Value::String("default".to_string()),
+            ),
+            (
+                "coalesce('value', 'default')",
+                Value::String("value".to_string()),
+            ),
+            (
+                "default(nil, 'default')",
+                Value::String("default".to_string()),
+            ),
+            (
+                "default('value', 'default')",
+                Value::String("value".to_string()),
+            ),
         ];
 
         for (source, expected) in test_cases {
@@ -1165,7 +1202,7 @@ mod tests {
     fn test_financial_functions() {
         // Test PMT function: payment for loan
         // PMT(rate, nper, pv) - rate=5%, nper=12, pv=1000 should be approximately -85.61
-        let source = "pmt(0.05/12, 12, 1000)";
+        let source = "pmt(0.05/12, 12, 1000, 0)";
         let program = compile(source, &[]).unwrap();
         let data = HashMap::new();
         let result = evaluate(&program, &data).unwrap();

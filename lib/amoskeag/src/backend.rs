@@ -57,11 +57,7 @@ pub trait Backend {
     /// # Returns
     ///
     /// The compiled output in the backend's format
-    fn compile(
-        &self,
-        expr: &Expr,
-        symbols: &[&str],
-    ) -> BackendResult<Self::CompiledOutput>;
+    fn compile(&self, expr: &Expr, symbols: &[&str]) -> BackendResult<Self::CompiledOutput>;
 
     /// Execute a compiled program
     ///
@@ -171,7 +167,8 @@ impl BackendRegistry {
 
     /// Register a backend
     pub fn register(&mut self, capabilities: BackendCapabilities) {
-        self.backends.insert(capabilities.name.clone(), capabilities);
+        self.backends
+            .insert(capabilities.name.clone(), capabilities);
     }
 
     /// Get information about a backend
@@ -210,7 +207,11 @@ mod tests {
             Ok("compiled".to_string())
         }
 
-        fn execute(&self, _compiled: &Self::CompiledOutput, _data: &HashMap<String, Value>) -> BackendResult<Self::ExecutionResult> {
+        fn execute(
+            &self,
+            _compiled: &Self::CompiledOutput,
+            _data: &HashMap<String, Value>,
+        ) -> BackendResult<Self::ExecutionResult> {
             Ok(Value::Number(42.0))
         }
 
@@ -285,7 +286,9 @@ mod tests {
 
         // Test specific content
         assert!(PerformanceTier::Native.description().contains("native"));
-        assert!(PerformanceTier::Transpiled.description().contains("external"));
+        assert!(PerformanceTier::Transpiled
+            .description()
+            .contains("external"));
     }
 
     #[test]

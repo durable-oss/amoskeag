@@ -63,19 +63,24 @@ impl ValueRange {
     pub fn add(&self, other: &ValueRange) -> ValueRange {
         match (self, other) {
             (ValueRange::Exact(a), ValueRange::Exact(b)) => ValueRange::Exact(a + b),
-            (ValueRange::Exact(a), ValueRange::Range { min, max }) |
-            (ValueRange::Range { min, max }, ValueRange::Exact(a)) => {
+            (ValueRange::Exact(a), ValueRange::Range { min, max })
+            | (ValueRange::Range { min, max }, ValueRange::Exact(a)) => ValueRange::Range {
+                min: min + a,
+                max: max + a,
+            },
+            (
                 ValueRange::Range {
-                    min: min + a,
-                    max: max + a,
-                }
-            }
-            (ValueRange::Range { min: min1, max: max1 }, ValueRange::Range { min: min2, max: max2 }) => {
+                    min: min1,
+                    max: max1,
+                },
                 ValueRange::Range {
-                    min: min1 + min2,
-                    max: max1 + max2,
-                }
-            }
+                    min: min2,
+                    max: max2,
+                },
+            ) => ValueRange::Range {
+                min: min1 + min2,
+                max: max1 + max2,
+            },
             _ => ValueRange::Any,
         }
     }
@@ -84,24 +89,27 @@ impl ValueRange {
     pub fn subtract(&self, other: &ValueRange) -> ValueRange {
         match (self, other) {
             (ValueRange::Exact(a), ValueRange::Exact(b)) => ValueRange::Exact(a - b),
-            (ValueRange::Exact(a), ValueRange::Range { min, max }) => {
+            (ValueRange::Exact(a), ValueRange::Range { min, max }) => ValueRange::Range {
+                min: a - max,
+                max: a - min,
+            },
+            (ValueRange::Range { min, max }, ValueRange::Exact(a)) => ValueRange::Range {
+                min: min - a,
+                max: max - a,
+            },
+            (
                 ValueRange::Range {
-                    min: a - max,
-                    max: a - min,
-                }
-            }
-            (ValueRange::Range { min, max }, ValueRange::Exact(a)) => {
+                    min: min1,
+                    max: max1,
+                },
                 ValueRange::Range {
-                    min: min - a,
-                    max: max - a,
-                }
-            }
-            (ValueRange::Range { min: min1, max: max1 }, ValueRange::Range { min: min2, max: max2 }) => {
-                ValueRange::Range {
-                    min: min1 - max2,
-                    max: max1 - min2,
-                }
-            }
+                    min: min2,
+                    max: max2,
+                },
+            ) => ValueRange::Range {
+                min: min1 - max2,
+                max: max1 - min2,
+            },
             _ => ValueRange::Any,
         }
     }
@@ -110,23 +118,33 @@ impl ValueRange {
     pub fn multiply(&self, other: &ValueRange) -> ValueRange {
         match (self, other) {
             (ValueRange::Exact(a), ValueRange::Exact(b)) => ValueRange::Exact(a * b),
-            (ValueRange::Exact(a), ValueRange::Range { min, max }) |
-            (ValueRange::Range { min, max }, ValueRange::Exact(a)) => {
+            (ValueRange::Exact(a), ValueRange::Range { min, max })
+            | (ValueRange::Range { min, max }, ValueRange::Exact(a)) => {
                 let corners = [a * min, a * max];
                 let min_val = corners.iter().cloned().fold(f64::INFINITY, f64::min);
                 let max_val = corners.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
-                ValueRange::Range { min: min_val, max: max_val }
+                ValueRange::Range {
+                    min: min_val,
+                    max: max_val,
+                }
             }
-            (ValueRange::Range { min: min1, max: max1 }, ValueRange::Range { min: min2, max: max2 }) => {
-                let corners = [
-                    min1 * min2,
-                    min1 * max2,
-                    max1 * min2,
-                    max1 * max2,
-                ];
+            (
+                ValueRange::Range {
+                    min: min1,
+                    max: max1,
+                },
+                ValueRange::Range {
+                    min: min2,
+                    max: max2,
+                },
+            ) => {
+                let corners = [min1 * min2, min1 * max2, max1 * min2, max1 * max2];
                 let min_val = corners.iter().cloned().fold(f64::INFINITY, f64::min);
                 let max_val = corners.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
-                ValueRange::Range { min: min_val, max: max_val }
+                ValueRange::Range {
+                    min: min_val,
+                    max: max_val,
+                }
             }
             _ => ValueRange::Any,
         }
@@ -141,29 +159,43 @@ impl ValueRange {
 
         match (self, other) {
             (ValueRange::Exact(a), ValueRange::Exact(b)) if *b != 0.0 => ValueRange::Exact(a / b),
-            (ValueRange::Exact(a), ValueRange::Range { min, max }) if *min != 0.0 && *max != 0.0 => {
+            (ValueRange::Exact(a), ValueRange::Range { min, max })
+                if *min != 0.0 && *max != 0.0 =>
+            {
                 let corners = [a / min, a / max];
                 let min_val = corners.iter().cloned().fold(f64::INFINITY, f64::min);
                 let max_val = corners.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
-                ValueRange::Range { min: min_val, max: max_val }
+                ValueRange::Range {
+                    min: min_val,
+                    max: max_val,
+                }
             }
             (ValueRange::Range { min, max }, ValueRange::Exact(a)) if *a != 0.0 => {
                 let corners = [min / a, max / a];
                 let min_val = corners.iter().cloned().fold(f64::INFINITY, f64::min);
                 let max_val = corners.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
-                ValueRange::Range { min: min_val, max: max_val }
+                ValueRange::Range {
+                    min: min_val,
+                    max: max_val,
+                }
             }
-            (ValueRange::Range { min: min1, max: max1 }, ValueRange::Range { min: min2, max: max2 })
-                if *min2 != 0.0 && *max2 != 0.0 => {
-                let corners = [
-                    min1 / min2,
-                    min1 / max2,
-                    max1 / min2,
-                    max1 / max2,
-                ];
+            (
+                ValueRange::Range {
+                    min: min1,
+                    max: max1,
+                },
+                ValueRange::Range {
+                    min: min2,
+                    max: max2,
+                },
+            ) if *min2 != 0.0 && *max2 != 0.0 => {
+                let corners = [min1 / min2, min1 / max2, max1 / min2, max1 / max2];
                 let min_val = corners.iter().cloned().fold(f64::INFINITY, f64::min);
                 let max_val = corners.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
-                ValueRange::Range { min: min_val, max: max_val }
+                ValueRange::Range {
+                    min: min_val,
+                    max: max_val,
+                }
             }
             _ => ValueRange::Any,
         }
@@ -173,7 +205,10 @@ impl ValueRange {
     pub fn negate(&self) -> ValueRange {
         match self {
             ValueRange::Exact(v) => ValueRange::Exact(-v),
-            ValueRange::Range { min, max } => ValueRange::Range { min: -max, max: -min },
+            ValueRange::Range { min, max } => ValueRange::Range {
+                min: -max,
+                max: -min,
+            },
             ValueRange::Any => ValueRange::Any,
             ValueRange::NonNumeric => ValueRange::NonNumeric,
         }
@@ -183,25 +218,28 @@ impl ValueRange {
     pub fn union(&self, other: &ValueRange) -> ValueRange {
         match (self, other) {
             (ValueRange::Exact(a), ValueRange::Exact(b)) if a == b => ValueRange::Exact(*a),
-            (ValueRange::Exact(a), ValueRange::Exact(b)) => {
+            (ValueRange::Exact(a), ValueRange::Exact(b)) => ValueRange::Range {
+                min: a.min(*b),
+                max: a.max(*b),
+            },
+            (ValueRange::Exact(a), ValueRange::Range { min, max })
+            | (ValueRange::Range { min, max }, ValueRange::Exact(a)) => ValueRange::Range {
+                min: min.min(*a),
+                max: max.max(*a),
+            },
+            (
                 ValueRange::Range {
-                    min: a.min(*b),
-                    max: a.max(*b),
-                }
-            }
-            (ValueRange::Exact(a), ValueRange::Range { min, max }) |
-            (ValueRange::Range { min, max }, ValueRange::Exact(a)) => {
+                    min: min1,
+                    max: max1,
+                },
                 ValueRange::Range {
-                    min: min.min(*a),
-                    max: max.max(*a),
-                }
-            }
-            (ValueRange::Range { min: min1, max: max1 }, ValueRange::Range { min: min2, max: max2 }) => {
-                ValueRange::Range {
-                    min: min1.min(*min2),
-                    max: max1.max(*max2),
-                }
-            }
+                    min: min2,
+                    max: max2,
+                },
+            ) => ValueRange::Range {
+                min: min1.min(*min2),
+                max: max1.max(*max2),
+            },
             (ValueRange::NonNumeric, ValueRange::NonNumeric) => ValueRange::NonNumeric,
             _ => ValueRange::Any,
         }
@@ -222,7 +260,11 @@ impl RangeAnalyzer {
     }
 
     /// Analyze an expression and compute value ranges
-    pub fn analyze(&mut self, expr: &Expr, context: &HashMap<String, ValueRange>) -> HashMap<String, ValueRange> {
+    pub fn analyze(
+        &mut self,
+        expr: &Expr,
+        context: &HashMap<String, ValueRange>,
+    ) -> HashMap<String, ValueRange> {
         self.ranges = context.clone();
         self.analyze_expr(expr);
         self.ranges.clone()
@@ -238,7 +280,10 @@ impl RangeAnalyzer {
 
             Expr::Variable(parts) => {
                 let var_name = parts.join(".");
-                self.ranges.get(&var_name).cloned().unwrap_or(ValueRange::Any)
+                self.ranges
+                    .get(&var_name)
+                    .cloned()
+                    .unwrap_or(ValueRange::Any)
             }
 
             Expr::Array(elements) => {
@@ -272,7 +317,11 @@ impl RangeAnalyzer {
                 self.analyze_expr(body)
             }
 
-            Expr::If { condition, then_branch, else_branch } => {
+            Expr::If {
+                condition,
+                then_branch,
+                else_branch,
+            } => {
                 self.analyze_expr(condition);
                 let then_range = self.analyze_expr(then_branch);
                 let else_range = self.analyze_expr(else_branch);
@@ -288,9 +337,14 @@ impl RangeAnalyzer {
                     BinaryOp::Subtract => left_range.subtract(&right_range),
                     BinaryOp::Multiply => left_range.multiply(&right_range),
                     BinaryOp::Divide | BinaryOp::Modulo => left_range.divide(&right_range),
-                    BinaryOp::Equal | BinaryOp::NotEqual | BinaryOp::Less |
-                    BinaryOp::Greater | BinaryOp::LessEqual | BinaryOp::GreaterEqual |
-                    BinaryOp::And | BinaryOp::Or => ValueRange::NonNumeric,
+                    BinaryOp::Equal
+                    | BinaryOp::NotEqual
+                    | BinaryOp::Less
+                    | BinaryOp::Greater
+                    | BinaryOp::LessEqual
+                    | BinaryOp::GreaterEqual
+                    | BinaryOp::And
+                    | BinaryOp::Or => ValueRange::NonNumeric,
                 }
             }
 
@@ -342,10 +396,16 @@ mod tests {
         let range1 = ValueRange::Exact(0.0);
         assert!(range1.contains_zero());
 
-        let range2 = ValueRange::Range { min: -5.0, max: 5.0 };
+        let range2 = ValueRange::Range {
+            min: -5.0,
+            max: 5.0,
+        };
         assert!(range2.contains_zero());
 
-        let range3 = ValueRange::Range { min: 1.0, max: 10.0 };
+        let range3 = ValueRange::Range {
+            min: 1.0,
+            max: 10.0,
+        };
         assert!(!range3.contains_zero());
     }
 

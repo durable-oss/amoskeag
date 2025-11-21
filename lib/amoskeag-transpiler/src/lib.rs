@@ -113,9 +113,11 @@ impl Transpiler {
             Expr::Variable(path) => self.transpile_variable(path),
             Expr::FunctionCall { name, args } => self.transpile_function_call(name, args),
             Expr::Let { name, value, body } => self.transpile_let(name, value, body),
-            Expr::If { condition, then_branch, else_branch } => {
-                self.transpile_if(condition, then_branch, else_branch)
-            }
+            Expr::If {
+                condition,
+                then_branch,
+                else_branch,
+            } => self.transpile_if(condition, then_branch, else_branch),
             Expr::Binary { op, left, right } => self.transpile_binary(*op, left, right),
             Expr::Unary { op, operand } => self.transpile_unary(*op, operand),
             Expr::Pipe { left, right } => self.transpile_pipe(left, right),
@@ -139,7 +141,11 @@ impl Transpiler {
 
         for (key, value) in pairs {
             let value_code = self.transpile_expr(value)?;
-            write!(output, " map.insert({:?}.to_string(), {});", key, value_code)?;
+            write!(
+                output,
+                " map.insert({:?}.to_string(), {});",
+                key, value_code
+            )?;
         }
 
         write!(output, " Value::Dictionary(map)")?;
@@ -180,7 +186,11 @@ impl Transpiler {
     }
 
     /// Transpile a function call
-    fn transpile_function_call(&mut self, name: &str, args: &[Expr]) -> Result<String, TranspileError> {
+    fn transpile_function_call(
+        &mut self,
+        name: &str,
+        args: &[Expr],
+    ) -> Result<String, TranspileError> {
         let mut arg_codes = Vec::new();
         for arg in args {
             arg_codes.push(self.transpile_expr(arg)?);
@@ -191,11 +201,12 @@ impl Transpiler {
         // Map to the corresponding stdlib function
         let result = match name {
             // Most functions match directly
-            "upcase" | "downcase" | "capitalize" | "strip" | "split" | "join" | "truncate" | "replace" |
-            "abs" | "ceil" | "floor" | "round" | "plus" | "minus" | "times" | "divided_by" |
-            "max" | "min" | "size" | "first" | "last" | "contains" | "sum" | "avg" | "sort" |
-            "keys" | "values" | "reverse" | "at" | "choose" | "if_then_else" | "is_number" |
-            "is_string" | "is_boolean" | "is_nil" | "is_array" | "is_dictionary" | "coalesce" | "default" => {
+            "upcase" | "downcase" | "capitalize" | "strip" | "split" | "join" | "truncate"
+            | "replace" | "abs" | "ceil" | "floor" | "round" | "plus" | "minus" | "times"
+            | "divided_by" | "max" | "min" | "size" | "first" | "last" | "contains" | "sum"
+            | "avg" | "sort" | "keys" | "values" | "reverse" | "at" | "choose" | "if_then_else"
+            | "is_number" | "is_string" | "is_boolean" | "is_nil" | "is_array"
+            | "is_dictionary" | "coalesce" | "default" => {
                 format!("{}(&{})?", name, args_str)
             }
 
@@ -205,9 +216,10 @@ impl Transpiler {
             }
 
             _ => {
-                return Err(TranspileError::UnsupportedExpression(
-                    format!("Unknown function: {}", name)
-                ));
+                return Err(TranspileError::UnsupportedExpression(format!(
+                    "Unknown function: {}",
+                    name
+                )));
             }
         };
 
@@ -215,13 +227,22 @@ impl Transpiler {
     }
 
     /// Transpile a let binding
-    fn transpile_let(&mut self, name: &str, value: &Expr, body: &Expr) -> Result<String, TranspileError> {
+    fn transpile_let(
+        &mut self,
+        name: &str,
+        value: &Expr,
+        body: &Expr,
+    ) -> Result<String, TranspileError> {
         let value_code = self.transpile_expr(value)?;
 
         let mut output = String::new();
         write!(output, "{{")?;
         write!(output, " let mut new_context = context.clone();")?;
-        write!(output, " new_context.insert({:?}.to_string(), {});", name, value_code)?;
+        write!(
+            output,
+            " new_context.insert({:?}.to_string(), {});",
+            name, value_code
+        )?;
 
         // Temporarily use new_context for the body
         let old_body = self.transpile_expr(body)?;
@@ -249,14 +270,23 @@ impl Transpiler {
         write!(output, "{{")?;
         write!(output, " let cond_value = {};", cond_code)?;
         write!(output, " let is_truthy = match cond_value {{ Value::Boolean(b) => b, Value::Nil => false, _ => true }};")?;
-        write!(output, " if is_truthy {{ {} }} else {{ {} }}", then_code, else_code)?;
+        write!(
+            output,
+            " if is_truthy {{ {} }} else {{ {} }}",
+            then_code, else_code
+        )?;
         write!(output, " }}")?;
 
         Ok(output)
     }
 
     /// Transpile a binary operation
-    fn transpile_binary(&mut self, op: BinaryOp, left: &Expr, right: &Expr) -> Result<String, TranspileError> {
+    fn transpile_binary(
+        &mut self,
+        op: BinaryOp,
+        left: &Expr,
+        right: &Expr,
+    ) -> Result<String, TranspileError> {
         let left_code = self.transpile_expr(left)?;
         let right_code = self.transpile_expr(right)?;
 
@@ -317,20 +347,23 @@ impl Transpiler {
 
                 // Map to the corresponding stdlib function
                 let result = match name.as_str() {
-                    "upcase" | "downcase" | "capitalize" | "strip" | "split" | "join" | "truncate" | "replace" |
-                    "abs" | "ceil" | "floor" | "round" | "plus" | "minus" | "times" | "divided_by" |
-                    "max" | "min" | "size" | "first" | "last" | "contains" | "sum" | "avg" | "sort" |
-                    "keys" | "values" | "reverse" | "at" | "choose" | "if_then_else" | "is_number" |
-                    "is_string" | "is_boolean" | "is_nil" | "is_array" | "is_dictionary" | "coalesce" | "default" => {
+                    "upcase" | "downcase" | "capitalize" | "strip" | "split" | "join"
+                    | "truncate" | "replace" | "abs" | "ceil" | "floor" | "round" | "plus"
+                    | "minus" | "times" | "divided_by" | "max" | "min" | "size" | "first"
+                    | "last" | "contains" | "sum" | "avg" | "sort" | "keys" | "values"
+                    | "reverse" | "at" | "choose" | "if_then_else" | "is_number" | "is_string"
+                    | "is_boolean" | "is_nil" | "is_array" | "is_dictionary" | "coalesce"
+                    | "default" => {
                         format!("{}(&{})?", name, args_str)
                     }
                     "modulo" => {
                         format!("modulo_fn(&{})?", args_str)
                     }
                     _ => {
-                        return Err(TranspileError::UnsupportedExpression(
-                            format!("Unknown function in pipe: {}", name)
-                        ));
+                        return Err(TranspileError::UnsupportedExpression(format!(
+                            "Unknown function in pipe: {}",
+                            name
+                        )));
                     }
                 };
 
@@ -340,24 +373,23 @@ impl Transpiler {
                 // Simple function name without args
                 let name = &path[0];
                 let result = match name.as_str() {
-                    "upcase" | "downcase" | "capitalize" | "strip" | "size" | "first" | "last" |
-                    "sum" | "avg" | "sort" | "keys" | "values" | "reverse" | "is_number" |
-                    "is_string" | "is_boolean" | "is_nil" | "is_array" | "is_dictionary" => {
+                    "upcase" | "downcase" | "capitalize" | "strip" | "size" | "first" | "last"
+                    | "sum" | "avg" | "sort" | "keys" | "values" | "reverse" | "is_number"
+                    | "is_string" | "is_boolean" | "is_nil" | "is_array" | "is_dictionary" => {
                         format!("{}(&{})?", name, left_code)
                     }
                     _ => {
-                        return Err(TranspileError::UnsupportedExpression(
-                            format!("Unknown function in pipe: {}", name)
-                        ));
+                        return Err(TranspileError::UnsupportedExpression(format!(
+                            "Unknown function in pipe: {}",
+                            name
+                        )));
                     }
                 };
                 Ok(result)
             }
-            _ => {
-                Err(TranspileError::UnsupportedExpression(
-                    "Pipe target must be a function call or function name".to_string()
-                ))
-            }
+            _ => Err(TranspileError::UnsupportedExpression(
+                "Pipe target must be a function call or function name".to_string(),
+            )),
         }
     }
 }

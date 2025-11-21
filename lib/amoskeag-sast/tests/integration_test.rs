@@ -9,7 +9,10 @@ fn test_end_to_end_division_by_zero() {
     let result = analyze(&expr, &[]);
 
     assert!(!result.errors.is_empty());
-    assert!(result.errors.iter().any(|e| e.message.to_lowercase().contains("division")));
+    assert!(result
+        .errors
+        .iter()
+        .any(|e| e.message.to_lowercase().contains("division")));
     assert_eq!(result.statistics.critical_errors, 1);
 }
 
@@ -22,7 +25,10 @@ fn test_end_to_end_potential_division_by_zero() {
     assert!(!result.errors.is_empty() || !result.vulnerable_inputs.is_empty());
 
     if !result.vulnerable_inputs.is_empty() {
-        assert!(result.vulnerable_inputs.iter().any(|v| v.error_type == "DivisionByZero"));
+        assert!(result
+            .vulnerable_inputs
+            .iter()
+            .any(|v| v.error_type == "DivisionByZero"));
     }
 }
 
@@ -32,7 +38,10 @@ fn test_end_to_end_unreachable_code() {
     let result = analyze(&expr, &[]);
 
     assert!(!result.errors.is_empty());
-    assert!(result.errors.iter().any(|e| e.message.contains("unreachable")));
+    assert!(result
+        .errors
+        .iter()
+        .any(|e| e.message.contains("unreachable")));
 }
 
 #[test]
@@ -40,7 +49,10 @@ fn test_end_to_end_unused_variable() {
     let expr = parse("let x = 5 in 10").unwrap();
     let result = analyze(&expr, &[]);
 
-    assert!(result.errors.iter().any(|e| e.message.contains("never used")));
+    assert!(result
+        .errors
+        .iter()
+        .any(|e| e.message.contains("never used")));
 }
 
 #[test]
@@ -67,7 +79,10 @@ fn test_end_to_end_complex_expression() {
 
     // Should detect division by zero in else branch
     assert!(!result.errors.is_empty());
-    assert!(result.errors.iter().any(|e| e.message.to_lowercase().contains("division")));
+    assert!(result
+        .errors
+        .iter()
+        .any(|e| e.message.to_lowercase().contains("division")));
 }
 
 #[test]
@@ -88,7 +103,10 @@ fn test_array_out_of_bounds() {
     let result = analyze(&expr, &[]);
 
     assert!(!result.errors.is_empty());
-    assert!(result.errors.iter().any(|e| e.message.contains("out of bounds")));
+    assert!(result
+        .errors
+        .iter()
+        .any(|e| e.message.contains("out of bounds")));
 }
 
 #[test]
@@ -133,8 +151,9 @@ fn test_multiple_vulnerabilities() {
     let result = analyze(&expr, &[]);
 
     // Should detect multiple issues
-    assert!(result.errors.len() >= 2 ||
-            (result.errors.len() + result.vulnerable_inputs.len()) >= 2);
+    assert!(
+        result.errors.len() >= 2 || (result.errors.len() + result.vulnerable_inputs.len()) >= 2
+    );
 }
 
 #[test]
@@ -143,7 +162,10 @@ fn test_symbol_validation() {
     let result = analyze(&expr, &["approved", "denied"]);
 
     // Should warn about undefined symbol
-    assert!(result.errors.iter().any(|e| e.message.contains("unknown_symbol")));
+    assert!(result
+        .errors
+        .iter()
+        .any(|e| e.message.contains("unknown_symbol")));
 }
 
 #[test]
@@ -164,7 +186,10 @@ fn test_large_array_warning() {
     let result = analyze(&expr, &[]);
 
     // Should warn about large array
-    assert!(result.errors.iter().any(|e| e.message.contains("Large array")));
+    assert!(result
+        .errors
+        .iter()
+        .any(|e| e.message.contains("Large array")));
 }
 
 #[test]

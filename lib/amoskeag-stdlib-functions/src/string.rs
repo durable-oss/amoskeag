@@ -35,7 +35,8 @@ pub fn capitalize(value: &Value) -> Result<Value, FunctionError> {
             match chars.next() {
                 None => Ok(Value::String(String::new())),
                 Some(first) => {
-                    let capitalized = first.to_uppercase().collect::<String>() + chars.as_str().to_lowercase().as_str();
+                    let capitalized = first.to_uppercase().collect::<String>()
+                        + chars.as_str().to_lowercase().as_str();
                     Ok(Value::String(capitalized))
                 }
             }

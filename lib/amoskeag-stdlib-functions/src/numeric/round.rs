@@ -7,9 +7,20 @@ use crate::{FunctionError, Value};
 pub fn round(value: &Value, digits: &Value) -> Result<Value, FunctionError> {
     match (value, digits) {
         (Value::Number(n), Value::Number(d)) => {
-            let decimal_places = (*d).max(0.0) as i32;
-            let multiplier = 10_f64.powi(decimal_places);
-            let rounded = (n * multiplier).round() / multiplier;
+            let decimal_places = if d.is_finite() {
+                (*d as i32).clamp(-20, 20)
+            } else {
+                return Err(FunctionError::ArgumentError {
+                    message: "digits must be finite".to_string(),
+                });
+            };
+            let multiplier = 10_f64.powi(decimal_places.abs());
+            let rounded = if decimal_places >= 0 {
+                (n * multiplier).round() / multiplier
+            } else {
+                // For negative decimal places, round to tens, hundreds, etc.
+                (n / multiplier).round() * multiplier
+            };
             Ok(Value::Number(rounded))
         }
         (Value::Number(_), _) => Err(FunctionError::TypeError {

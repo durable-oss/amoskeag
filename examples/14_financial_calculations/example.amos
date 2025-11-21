@@ -11,7 +11,7 @@ let monthly_rate = annual_rate / 12
 in
 let total_payments = years * 12
 in
-let monthly_payment = pmt(monthly_rate, total_payments, loan_amount)
+let monthly_payment = pmt(monthly_rate, total_payments, loan_amount, 0)
 in
 let total_paid = monthly_payment * total_payments
 in

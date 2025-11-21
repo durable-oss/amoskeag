@@ -8,7 +8,12 @@ use crate::{FunctionError, Value};
 /// Uses declining balance method with double the straight-line rate
 ///
 /// Example: ddb(30000, 7500, 10, 1) = depreciation for first year
-pub fn ddb(cost: &Value, salvage: &Value, life: &Value, period: &Value) -> Result<Value, FunctionError> {
+pub fn ddb(
+    cost: &Value,
+    salvage: &Value,
+    life: &Value,
+    period: &Value,
+) -> Result<Value, FunctionError> {
     match (cost, salvage, life, period) {
         (Value::Number(c), Value::Number(s), Value::Number(l), Value::Number(p)) => {
             if *l <= 0.0 {
@@ -20,6 +25,12 @@ pub fn ddb(cost: &Value, salvage: &Value, life: &Value, period: &Value) -> Resul
             if *p < 1.0 || *p > *l {
                 return Err(FunctionError::ArgumentError {
                     message: format!("period must be between 1 and {}", l),
+                });
+            }
+
+            if *p != (*p as i32 as f64) {
+                return Err(FunctionError::ArgumentError {
+                    message: "period must be an integer".to_string(),
                 });
             }
 
@@ -44,10 +55,12 @@ pub fn ddb(cost: &Value, salvage: &Value, life: &Value, period: &Value) -> Resul
 
             Ok(Value::Number(depreciation.max(0.0)))
         }
-        (Value::Number(_), Value::Number(_), Value::Number(_), _) => Err(FunctionError::TypeError {
-            expected: "Number".to_string(),
-            got: period.type_name().to_string(),
-        }),
+        (Value::Number(_), Value::Number(_), Value::Number(_), _) => {
+            Err(FunctionError::TypeError {
+                expected: "Number".to_string(),
+                got: period.type_name().to_string(),
+            })
+        }
         (Value::Number(_), Value::Number(_), _, _) => Err(FunctionError::TypeError {
             expected: "Number".to_string(),
             got: life.type_name().to_string(),

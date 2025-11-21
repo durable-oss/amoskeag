@@ -188,10 +188,7 @@ impl RubyTranspiler {
 
         if is_simple {
             // Use ternary operator for simple expressions
-            Ok(format!(
-                "{} ? {} : {}",
-                condition_str, then_str, else_str
-            ))
+            Ok(format!("{} ? {} : {}", condition_str, then_str, else_str))
         } else {
             // Use if-else-end for complex expressions
             Ok(format!(
@@ -242,11 +239,7 @@ impl RubyTranspiler {
         }
     }
 
-    fn transpile_unary(
-        &mut self,
-        op: UnaryOp,
-        operand: &Expr,
-    ) -> Result<String, TranspileError> {
+    fn transpile_unary(&mut self, op: UnaryOp, operand: &Expr) -> Result<String, TranspileError> {
         let operand_str = self.transpile_expr(operand)?;
 
         let op_str = match op {
@@ -271,7 +264,6 @@ impl RubyTranspiler {
             Ok(format!("{}{}", op_str, operand_str))
         }
     }
-
 }
 
 impl Default for RubyTranspiler {

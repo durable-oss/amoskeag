@@ -164,7 +164,14 @@ mod tests {
 
     #[test]
     fn test_parse_run_eval_args_with_symbols() {
-        let args = make_args(&["amoskeag", "run", "file.amos", "data.json", "approve", "deny"]);
+        let args = make_args(&[
+            "amoskeag",
+            "run",
+            "file.amos",
+            "data.json",
+            "approve",
+            "deny",
+        ]);
         let (_, _, symbols, _) = parse_run_eval_args(&args).unwrap();
         assert_eq!(symbols, vec!["approve", "deny"]);
     }

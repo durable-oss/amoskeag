@@ -294,13 +294,21 @@ mod tests {
 
     #[test]
     fn test_sum() {
-        let arr = Value::Array(vec![Value::Number(1.0), Value::Number(2.0), Value::Number(3.0)]);
+        let arr = Value::Array(vec![
+            Value::Number(1.0),
+            Value::Number(2.0),
+            Value::Number(3.0),
+        ]);
         assert_eq!(sum(&arr).unwrap(), Value::Number(6.0));
     }
 
     #[test]
     fn test_avg() {
-        let arr = Value::Array(vec![Value::Number(1.0), Value::Number(2.0), Value::Number(3.0)]);
+        let arr = Value::Array(vec![
+            Value::Number(1.0),
+            Value::Number(2.0),
+            Value::Number(3.0),
+        ]);
         assert_eq!(avg(&arr).unwrap(), Value::Number(2.0));
 
         let empty = Value::Array(vec![]);
@@ -309,11 +317,19 @@ mod tests {
 
     #[test]
     fn test_sort_numbers() {
-        let arr = Value::Array(vec![Value::Number(3.0), Value::Number(1.0), Value::Number(2.0)]);
+        let arr = Value::Array(vec![
+            Value::Number(3.0),
+            Value::Number(1.0),
+            Value::Number(2.0),
+        ]);
         let sorted = sort(&arr).unwrap();
         assert_eq!(
             sorted,
-            Value::Array(vec![Value::Number(1.0), Value::Number(2.0), Value::Number(3.0)])
+            Value::Array(vec![
+                Value::Number(1.0),
+                Value::Number(2.0),
+                Value::Number(3.0)
+            ])
         );
     }
 
@@ -365,26 +381,35 @@ mod tests {
 
     #[test]
     fn test_reverse() {
-        let arr = Value::Array(vec![Value::Number(1.0), Value::Number(2.0), Value::Number(3.0)]);
+        let arr = Value::Array(vec![
+            Value::Number(1.0),
+            Value::Number(2.0),
+            Value::Number(3.0),
+        ]);
         let reversed = reverse(&arr).unwrap();
         assert_eq!(
             reversed,
-            Value::Array(vec![Value::Number(3.0), Value::Number(2.0), Value::Number(1.0)])
+            Value::Array(vec![
+                Value::Number(3.0),
+                Value::Number(2.0),
+                Value::Number(1.0)
+            ])
         );
     }
 
     #[test]
     fn test_at() {
-        let arr = Value::Array(vec![Value::Number(1.0), Value::Number(2.0), Value::Number(3.0)]);
+        let arr = Value::Array(vec![
+            Value::Number(1.0),
+            Value::Number(2.0),
+            Value::Number(3.0),
+        ]);
 
         assert_eq!(at(&arr, &Value::Number(0.0)).unwrap(), Value::Number(1.0));
         assert_eq!(at(&arr, &Value::Number(2.0)).unwrap(), Value::Number(3.0));
         assert_eq!(at(&arr, &Value::Number(10.0)).unwrap(), Value::Nil);
 
         // Test negative indexing
-        assert_eq!(
-            at(&arr, &Value::Number(-1.0)).unwrap(),
-            Value::Number(3.0)
-        );
+        assert_eq!(at(&arr, &Value::Number(-1.0)).unwrap(), Value::Number(3.0));
     }
 }

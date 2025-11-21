@@ -21,7 +21,11 @@ pub enum Constraint {
     /// Variable is greater than or equal to a value
     GreaterEqual { variable: String, value: f64 },
     /// Variable is within a range
-    InRange { variable: String, min: f64, max: f64 },
+    InRange {
+        variable: String,
+        min: f64,
+        max: f64,
+    },
     /// Variable is a string
     IsString { variable: String },
     /// Variable is a number
@@ -40,33 +44,43 @@ impl Constraint {
     /// Check if a solution satisfies this constraint
     pub fn is_satisfied(&self, solution: &Solution) -> bool {
         match self {
-            Constraint::Equal { variable, value } => {
-                solution.values.get(variable).map(|v| (v - value).abs() < f64::EPSILON).unwrap_or(false)
-            }
-            Constraint::NotEqual { variable, value } => {
-                solution.values.get(variable).map(|v| (v - value).abs() >= f64::EPSILON).unwrap_or(true)
-            }
-            Constraint::LessThan { variable, value } => {
-                solution.values.get(variable).map(|v| v < value).unwrap_or(false)
-            }
-            Constraint::GreaterThan { variable, value } => {
-                solution.values.get(variable).map(|v| v > value).unwrap_or(false)
-            }
-            Constraint::LessEqual { variable, value } => {
-                solution.values.get(variable).map(|v| v <= value).unwrap_or(false)
-            }
-            Constraint::GreaterEqual { variable, value } => {
-                solution.values.get(variable).map(|v| v >= value).unwrap_or(false)
-            }
-            Constraint::InRange { variable, min, max } => {
-                solution.values.get(variable).map(|v| v >= min && v <= max).unwrap_or(false)
-            }
-            Constraint::And(constraints) => {
-                constraints.iter().all(|c| c.is_satisfied(solution))
-            }
-            Constraint::Or(constraints) => {
-                constraints.iter().any(|c| c.is_satisfied(solution))
-            }
+            Constraint::Equal { variable, value } => solution
+                .values
+                .get(variable)
+                .map(|v| (v - value).abs() < f64::EPSILON)
+                .unwrap_or(false),
+            Constraint::NotEqual { variable, value } => solution
+                .values
+                .get(variable)
+                .map(|v| (v - value).abs() >= f64::EPSILON)
+                .unwrap_or(true),
+            Constraint::LessThan { variable, value } => solution
+                .values
+                .get(variable)
+                .map(|v| v < value)
+                .unwrap_or(false),
+            Constraint::GreaterThan { variable, value } => solution
+                .values
+                .get(variable)
+                .map(|v| v > value)
+                .unwrap_or(false),
+            Constraint::LessEqual { variable, value } => solution
+                .values
+                .get(variable)
+                .map(|v| v <= value)
+                .unwrap_or(false),
+            Constraint::GreaterEqual { variable, value } => solution
+                .values
+                .get(variable)
+                .map(|v| v >= value)
+                .unwrap_or(false),
+            Constraint::InRange { variable, min, max } => solution
+                .values
+                .get(variable)
+                .map(|v| v >= min && v <= max)
+                .unwrap_or(false),
+            Constraint::And(constraints) => constraints.iter().all(|c| c.is_satisfied(solution)),
+            Constraint::Or(constraints) => constraints.iter().any(|c| c.is_satisfied(solution)),
             _ => true, // Type constraints are handled differently
         }
     }
@@ -74,24 +88,30 @@ impl Constraint {
     /// Negate a constraint
     pub fn negate(&self) -> Constraint {
         match self {
-            Constraint::Equal { variable, value } => {
-                Constraint::NotEqual { variable: variable.clone(), value: *value }
-            }
-            Constraint::NotEqual { variable, value } => {
-                Constraint::Equal { variable: variable.clone(), value: *value }
-            }
-            Constraint::LessThan { variable, value } => {
-                Constraint::GreaterEqual { variable: variable.clone(), value: *value }
-            }
-            Constraint::GreaterThan { variable, value } => {
-                Constraint::LessEqual { variable: variable.clone(), value: *value }
-            }
-            Constraint::LessEqual { variable, value } => {
-                Constraint::GreaterThan { variable: variable.clone(), value: *value }
-            }
-            Constraint::GreaterEqual { variable, value } => {
-                Constraint::LessThan { variable: variable.clone(), value: *value }
-            }
+            Constraint::Equal { variable, value } => Constraint::NotEqual {
+                variable: variable.clone(),
+                value: *value,
+            },
+            Constraint::NotEqual { variable, value } => Constraint::Equal {
+                variable: variable.clone(),
+                value: *value,
+            },
+            Constraint::LessThan { variable, value } => Constraint::GreaterEqual {
+                variable: variable.clone(),
+                value: *value,
+            },
+            Constraint::GreaterThan { variable, value } => Constraint::LessEqual {
+                variable: variable.clone(),
+                value: *value,
+            },
+            Constraint::LessEqual { variable, value } => Constraint::GreaterThan {
+                variable: variable.clone(),
+                value: *value,
+            },
+            Constraint::GreaterEqual { variable, value } => Constraint::LessThan {
+                variable: variable.clone(),
+                value: *value,
+            },
             Constraint::And(constraints) => {
                 Constraint::Or(constraints.iter().map(|c| c.negate()).collect())
             }
@@ -194,19 +214,23 @@ impl ConstraintSolver {
     }
 
     #[allow(clippy::only_used_in_recursion)]
-    fn extract_variables_from_constraint(&self, constraint: &Constraint, variables: &mut std::collections::HashSet<String>) {
+    fn extract_variables_from_constraint(
+        &self,
+        constraint: &Constraint,
+        variables: &mut std::collections::HashSet<String>,
+    ) {
         match constraint {
-            Constraint::Equal { variable, .. } |
-            Constraint::NotEqual { variable, .. } |
-            Constraint::LessThan { variable, .. } |
-            Constraint::GreaterThan { variable, .. } |
-            Constraint::LessEqual { variable, .. } |
-            Constraint::GreaterEqual { variable, .. } |
-            Constraint::InRange { variable, .. } |
-            Constraint::IsString { variable } |
-            Constraint::IsNumber { variable } |
-            Constraint::IsBoolean { variable } |
-            Constraint::IsNil { variable } => {
+            Constraint::Equal { variable, .. }
+            | Constraint::NotEqual { variable, .. }
+            | Constraint::LessThan { variable, .. }
+            | Constraint::GreaterThan { variable, .. }
+            | Constraint::LessEqual { variable, .. }
+            | Constraint::GreaterEqual { variable, .. }
+            | Constraint::InRange { variable, .. }
+            | Constraint::IsString { variable }
+            | Constraint::IsNumber { variable }
+            | Constraint::IsBoolean { variable }
+            | Constraint::IsNil { variable } => {
                 variables.insert(variable.clone());
             }
             Constraint::And(constraints) | Constraint::Or(constraints) => {
@@ -236,7 +260,11 @@ impl ConstraintSolver {
                 Constraint::GreaterEqual { variable: v, value } if v == variable => {
                     return Some(*value);
                 }
-                Constraint::InRange { variable: v, min, max } if v == variable => {
+                Constraint::InRange {
+                    variable: v,
+                    min,
+                    max,
+                } if v == variable => {
                     return Some((min + max) / 2.0);
                 }
                 _ => {}

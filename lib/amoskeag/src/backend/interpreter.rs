@@ -58,16 +58,11 @@ impl Backend for InterpreterBackend {
         "interpreter"
     }
 
-    fn compile(
-        &self,
-        expr: &Expr,
-        symbols: &[&str],
-    ) -> BackendResult<Self::CompiledOutput> {
+    fn compile(&self, expr: &Expr, symbols: &[&str]) -> BackendResult<Self::CompiledOutput> {
         // We need to convert the expr to source and back
         // For now, we'll use the AST directly
         // This is a bit of a hack, but works for the interface
-        compile(&format!("{:?}", expr), symbols)
-            .map_err(BackendError::CompileError)
+        compile(&format!("{:?}", expr), symbols).map_err(BackendError::CompileError)
     }
 
     fn execute(
@@ -75,8 +70,7 @@ impl Backend for InterpreterBackend {
         compiled: &Self::CompiledOutput,
         data: &HashMap<String, Value>,
     ) -> BackendResult<Self::ExecutionResult> {
-        evaluate(compiled, data)
-            .map_err(BackendError::EvalError)
+        evaluate(compiled, data).map_err(BackendError::EvalError)
     }
 
     fn supports(&self, _expr: &Expr) -> bool {
@@ -144,15 +138,9 @@ impl Backend for DirectInterpreterBackend {
         "direct-interpreter"
     }
 
-    fn compile(
-        &self,
-        expr: &Expr,
-        _symbols: &[&str],
-    ) -> BackendResult<Self::CompiledOutput> {
+    fn compile(&self, expr: &Expr, _symbols: &[&str]) -> BackendResult<Self::CompiledOutput> {
         // Symbol validation would happen here in a real implementation
-        Ok(DirectCompiledProgram {
-            expr: expr.clone(),
-        })
+        Ok(DirectCompiledProgram { expr: expr.clone() })
     }
 
     fn execute(
@@ -160,11 +148,10 @@ impl Backend for DirectInterpreterBackend {
         compiled: &Self::CompiledOutput,
         data: &HashMap<String, Value>,
     ) -> BackendResult<Self::ExecutionResult> {
-        use crate::{Context, eval_expr};
+        use crate::{eval_expr, Context};
 
         let context = Context::new(data.clone());
-        eval_expr(&compiled.expr, &context)
-            .map_err(BackendError::EvalError)
+        eval_expr(&compiled.expr, &context).map_err(BackendError::EvalError)
     }
 
     fn supports(&self, _expr: &Expr) -> bool {

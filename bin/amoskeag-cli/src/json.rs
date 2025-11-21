@@ -213,7 +213,9 @@ mod tests {
     #[test]
     fn test_float_numbers() {
         let result = parse_json_data(r#"{"pi": 3.14159, "neg": -2.5}"#).unwrap();
-        assert!(matches!(result.get("pi"), Some(Value::Number(n)) if (*n - 3.14159).abs() < 0.0001));
+        assert!(
+            matches!(result.get("pi"), Some(Value::Number(n)) if (*n - 3.14159).abs() < 0.0001)
+        );
         assert!(matches!(result.get("neg"), Some(Value::Number(n)) if *n == -2.5));
     }
 

@@ -1,7 +1,7 @@
 //! cumprinc function
 
-use crate::{FunctionError, Value};
 use super::ppmt::ppmt;
+use crate::{FunctionError, Value};
 
 /// Calculate cumulative principal paid between two periods
 /// cumprinc(rate: Number, nper: Number, pv: Number, start_period: Number, end_period: Number, type_: Number) -> Number
@@ -52,19 +52,13 @@ pub fn cumprinc(
                     &Value::Number(period as f64),
                     &Value::Number(*n),
                     &Value::Number(*v),
+                    &Value::Number(*t),
                 )? {
                     Value::Number(p) => p,
                     _ => unreachable!(),
                 };
 
-                // Adjust for payment timing
-                let adjusted_principal = if *t == 1.0 {
-                    principal / (1.0 + r)
-                } else {
-                    principal
-                };
-
-                total_principal += adjusted_principal;
+                total_principal += principal;
             }
 
             Ok(Value::Number(total_principal))

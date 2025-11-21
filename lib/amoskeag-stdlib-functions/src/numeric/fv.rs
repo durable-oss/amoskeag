@@ -29,10 +29,12 @@ pub fn fv(rate: &Value, nper: &Value, pmt: &Value, pv: &Value) -> Result<Value, 
 
             Ok(Value::Number(future_value))
         }
-        (Value::Number(_), Value::Number(_), Value::Number(_), _) => Err(FunctionError::TypeError {
-            expected: "Number".to_string(),
-            got: pv.type_name().to_string(),
-        }),
+        (Value::Number(_), Value::Number(_), Value::Number(_), _) => {
+            Err(FunctionError::TypeError {
+                expected: "Number".to_string(),
+                got: pv.type_name().to_string(),
+            })
+        }
         (Value::Number(_), Value::Number(_), _, _) => Err(FunctionError::TypeError {
             expected: "Number".to_string(),
             got: pmt.type_name().to_string(),

@@ -3,11 +3,11 @@
 //! Uses constraint solving and symbolic execution to find input parameters
 //! that could cause errors.
 
+use crate::constraint_solver::{Constraint, ConstraintSolver};
+use crate::range_analysis::ValueRange;
 use amoskeag_parser::{BinaryOp, Expr};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use crate::constraint_solver::{Constraint, ConstraintSolver};
-use crate::range_analysis::ValueRange;
 
 /// A constraint on input parameters
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -49,7 +49,12 @@ impl AlgebraicAnalyzer {
     }
 
     /// Analyze an expression to find vulnerable inputs
-    pub fn analyze(&mut self, expr: &Expr, _symbols: &[&str], _ranges: &HashMap<String, ValueRange>) -> Vec<VulnerableInput> {
+    pub fn analyze(
+        &mut self,
+        expr: &Expr,
+        _symbols: &[&str],
+        _ranges: &HashMap<String, ValueRange>,
+    ) -> Vec<VulnerableInput> {
         self.vulnerable_inputs.clear();
         self.analyze_expr(expr, &mut Vec::new());
         self.vulnerable_inputs.clone()
@@ -73,7 +78,11 @@ impl AlgebraicAnalyzer {
                 }
             }
 
-            Expr::If { condition, then_branch, else_branch } => {
+            Expr::If {
+                condition,
+                then_branch,
+                else_branch,
+            } => {
                 // Analyze condition
                 self.analyze_expr(condition, path_conditions);
 
@@ -180,7 +189,13 @@ impl AlgebraicAnalyzer {
         }
     }
 
-    fn check_overflow(&mut self, left: &Expr, right: &Expr, op: BinaryOp, path_conditions: &[Constraint]) {
+    fn check_overflow(
+        &mut self,
+        left: &Expr,
+        right: &Expr,
+        op: BinaryOp,
+        path_conditions: &[Constraint],
+    ) {
         // Try to find inputs that cause overflow
         let left_var = self.extract_variable_name(left);
         let right_var = self.extract_variable_name(right);
@@ -218,7 +233,12 @@ impl AlgebraicAnalyzer {
         }
     }
 
-    fn check_function_vulnerabilities(&mut self, name: &str, args: &[Expr], path_conditions: &[Constraint]) {
+    fn check_function_vulnerabilities(
+        &mut self,
+        name: &str,
+        args: &[Expr],
+        path_conditions: &[Constraint],
+    ) {
         match name {
             "at" => {
                 // Array access - check for out of bounds
@@ -238,7 +258,10 @@ impl AlgebraicAnalyzer {
                             if solution.satisfies {
                                 self.vulnerable_inputs.push(VulnerableInput {
                                     error_type: "ArrayOutOfBounds".to_string(),
-                                    description: format!("Negative array index when {} < 0", index_var),
+                                    description: format!(
+                                        "Negative array index when {} < 0",
+                                        index_var
+                                    ),
                                     example_input: solution.values.clone(),
                                     location: format!("at() with index {}", index_var),
                                     severity: "Warning".to_string(),
@@ -355,7 +378,9 @@ mod tests {
         let vulnerabilities = analyzer.analyze(&expr, &[], &HashMap::new());
 
         assert!(!vulnerabilities.is_empty());
-        assert!(vulnerabilities.iter().any(|v| v.error_type == "DivisionByZero"));
+        assert!(vulnerabilities
+            .iter()
+            .any(|v| v.error_type == "DivisionByZero"));
     }
 
     #[test]

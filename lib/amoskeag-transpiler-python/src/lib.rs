@@ -64,15 +64,24 @@ pub fn transpile(expr: &Expr, config: &TranspileConfig) -> Result<String, Transp
     // Generate the main function
     writeln!(&mut output, "def evaluate(data: Dict[str, Any]) -> Any:")
         .map_err(|e| TranspileError::FormatError(e.to_string()))?;
-    writeln!(&mut output, "{}\"\"\"Evaluate the Amoskeag program.\"\"\"", config.indent)
-        .map_err(|e| TranspileError::FormatError(e.to_string()))?;
+    writeln!(
+        &mut output,
+        "{}\"\"\"Evaluate the Amoskeag program.\"\"\"",
+        config.indent
+    )
+    .map_err(|e| TranspileError::FormatError(e.to_string()))?;
 
     // Generate helper functions
     generate_helpers(&mut output, &config.indent)?;
 
     // Generate the main expression
-    writeln!(&mut output, "{}return {}", config.indent, transpile_expr(expr, &config.indent, 1)?)
-        .map_err(|e| TranspileError::FormatError(e.to_string()))?;
+    writeln!(
+        &mut output,
+        "{}return {}",
+        config.indent,
+        transpile_expr(expr, &config.indent, 1)?
+    )
+    .map_err(|e| TranspileError::FormatError(e.to_string()))?;
 
     Ok(output)
 }
@@ -108,24 +117,16 @@ fn generate_helpers(output: &mut String, indent: &str) -> Result<(), TranspileEr
         indent, indent, indent, indent
     )
     .map_err(|e| TranspileError::FormatError(e.to_string()))?;
-    writeln!(
-        output,
-        "{}{}{}else:",
-        indent, indent, indent
-    )
-    .map_err(|e| TranspileError::FormatError(e.to_string()))?;
+    writeln!(output, "{}{}{}else:", indent, indent, indent)
+        .map_err(|e| TranspileError::FormatError(e.to_string()))?;
     writeln!(
         output,
         "{}{}{}{}return None",
         indent, indent, indent, indent
     )
     .map_err(|e| TranspileError::FormatError(e.to_string()))?;
-    writeln!(
-        output,
-        "{}{}{}if current is None:",
-        indent, indent, indent
-    )
-    .map_err(|e| TranspileError::FormatError(e.to_string()))?;
+    writeln!(output, "{}{}{}if current is None:", indent, indent, indent)
+        .map_err(|e| TranspileError::FormatError(e.to_string()))?;
     writeln!(
         output,
         "{}{}{}{}return None",
@@ -134,16 +135,11 @@ fn generate_helpers(output: &mut String, indent: &str) -> Result<(), TranspileEr
     .map_err(|e| TranspileError::FormatError(e.to_string()))?;
     writeln!(output, "{}{}return current", indent, indent)
         .map_err(|e| TranspileError::FormatError(e.to_string()))?;
-    writeln!(output)
-        .map_err(|e| TranspileError::FormatError(e.to_string()))?;
+    writeln!(output).map_err(|e| TranspileError::FormatError(e.to_string()))?;
 
     // Helper for truthiness
-    writeln!(
-        output,
-        "{}def _is_truthy(val: Any) -> bool:",
-        indent
-    )
-    .map_err(|e| TranspileError::FormatError(e.to_string()))?;
+    writeln!(output, "{}def _is_truthy(val: Any) -> bool:", indent)
+        .map_err(|e| TranspileError::FormatError(e.to_string()))?;
     writeln!(
         output,
         "{}{}\"\"\"Check if a value is truthy in Amoskeag.\"\"\"",
@@ -154,18 +150,13 @@ fn generate_helpers(output: &mut String, indent: &str) -> Result<(), TranspileEr
         .map_err(|e| TranspileError::FormatError(e.to_string()))?;
     writeln!(output, "{}{}{}return False", indent, indent, indent)
         .map_err(|e| TranspileError::FormatError(e.to_string()))?;
-    writeln!(
-        output,
-        "{}{}if isinstance(val, bool):",
-        indent, indent
-    )
-    .map_err(|e| TranspileError::FormatError(e.to_string()))?;
+    writeln!(output, "{}{}if isinstance(val, bool):", indent, indent)
+        .map_err(|e| TranspileError::FormatError(e.to_string()))?;
     writeln!(output, "{}{}{}return val", indent, indent, indent)
         .map_err(|e| TranspileError::FormatError(e.to_string()))?;
     writeln!(output, "{}{}return True", indent, indent)
         .map_err(|e| TranspileError::FormatError(e.to_string()))?;
-    writeln!(output)
-        .map_err(|e| TranspileError::FormatError(e.to_string()))?;
+    writeln!(output).map_err(|e| TranspileError::FormatError(e.to_string()))?;
 
     Ok(())
 }
@@ -211,7 +202,11 @@ fn transpile_expr(expr: &Expr, indent: &str, depth: usize) -> Result<String, Tra
                 Ok(format!("data.get({:?})", path[0]))
             } else {
                 // Nested access using helper
-                let keys = path.iter().map(|k| format!("{:?}", k)).collect::<Vec<_>>().join(", ");
+                let keys = path
+                    .iter()
+                    .map(|k| format!("{:?}", k))
+                    .collect::<Vec<_>>()
+                    .join(", ");
                 Ok(format!("_get_nested(data, {})", keys))
             }
         }
@@ -234,7 +229,10 @@ fn transpile_expr(expr: &Expr, indent: &str, depth: usize) -> Result<String, Tra
                 "split" => Ok(format!("{}.split({})", arg_codes[0], arg_codes[1])),
                 "join" => Ok(format!("{}.join({})", arg_codes[1], arg_codes[0])),
                 "truncate" => Ok(format!("{}[:int({})]", arg_codes[0], arg_codes[1])),
-                "replace" => Ok(format!("{}.replace({}, {})", arg_codes[0], arg_codes[1], arg_codes[2])),
+                "replace" => Ok(format!(
+                    "{}.replace({}, {})",
+                    arg_codes[0], arg_codes[1], arg_codes[2]
+                )),
 
                 // Numeric functions
                 "abs" => Ok(format!("abs({})", arg_codes[0])),
@@ -256,30 +254,76 @@ fn transpile_expr(expr: &Expr, indent: &str, depth: usize) -> Result<String, Tra
                 "min" => Ok(format!("min({}, {})", arg_codes[0], arg_codes[1])),
 
                 // Collection functions
-                "size" => Ok(format!("len({} if {} is not None else [])", arg_codes[0], arg_codes[0])),
-                "first" => Ok(format!("({}[0] if {} and len({}) > 0 else None)", arg_codes[0], arg_codes[0], arg_codes[0])),
-                "last" => Ok(format!("({}[-1] if {} and len({}) > 0 else None)", arg_codes[0], arg_codes[0], arg_codes[0])),
+                "size" => Ok(format!(
+                    "len({} if {} is not None else [])",
+                    arg_codes[0], arg_codes[0]
+                )),
+                "first" => Ok(format!(
+                    "({}[0] if {} and len({}) > 0 else None)",
+                    arg_codes[0], arg_codes[0], arg_codes[0]
+                )),
+                "last" => Ok(format!(
+                    "({}[-1] if {} and len({}) > 0 else None)",
+                    arg_codes[0], arg_codes[0], arg_codes[0]
+                )),
                 "contains" => Ok(format!("({} in {})", arg_codes[1], arg_codes[0])),
-                "sum" => Ok(format!("sum({} if {} is not None else [])", arg_codes[0], arg_codes[0])),
-                "avg" => Ok(format!("(sum({}) / len({}) if {} and len({}) > 0 else None)", arg_codes[0], arg_codes[0], arg_codes[0], arg_codes[0])),
-                "sort" => Ok(format!("sorted({} if {} is not None else [])", arg_codes[0], arg_codes[0])),
-                "keys" => Ok(format!("list({}.keys() if {} is not None else [])", arg_codes[0], arg_codes[0])),
-                "values" => Ok(format!("list({}.values() if {} is not None else [])", arg_codes[0], arg_codes[0])),
-                "reverse" => Ok(format!("list(reversed({} if {} is not None else []))", arg_codes[0], arg_codes[0])),
-                "at" => Ok(format!("({}[int({})] if {} and int({}) < len({}) else None)", arg_codes[0], arg_codes[1], arg_codes[0], arg_codes[1], arg_codes[0])),
+                "sum" => Ok(format!(
+                    "sum({} if {} is not None else [])",
+                    arg_codes[0], arg_codes[0]
+                )),
+                "avg" => Ok(format!(
+                    "(sum({}) / len({}) if {} and len({}) > 0 else None)",
+                    arg_codes[0], arg_codes[0], arg_codes[0], arg_codes[0]
+                )),
+                "sort" => Ok(format!(
+                    "sorted({} if {} is not None else [])",
+                    arg_codes[0], arg_codes[0]
+                )),
+                "keys" => Ok(format!(
+                    "list({}.keys() if {} is not None else [])",
+                    arg_codes[0], arg_codes[0]
+                )),
+                "values" => Ok(format!(
+                    "list({}.values() if {} is not None else [])",
+                    arg_codes[0], arg_codes[0]
+                )),
+                "reverse" => Ok(format!(
+                    "list(reversed({} if {} is not None else []))",
+                    arg_codes[0], arg_codes[0]
+                )),
+                "at" => Ok(format!(
+                    "({}[int({})] if {} and int({}) < len({}) else None)",
+                    arg_codes[0], arg_codes[1], arg_codes[0], arg_codes[1], arg_codes[0]
+                )),
 
                 // Logic functions
-                "choose" => Ok(format!("({}[int({}) - 1] if {} and int({}) > 0 and int({}) <= len({}) else None)",
-                    arg_codes[1], arg_codes[0], arg_codes[1], arg_codes[0], arg_codes[0], arg_codes[1])),
-                "if_then_else" => Ok(format!("({} if _is_truthy({}) else {})", arg_codes[1], arg_codes[0], arg_codes[2])),
+                "choose" => Ok(format!(
+                    "({}[int({}) - 1] if {} and int({}) > 0 and int({}) <= len({}) else None)",
+                    arg_codes[1],
+                    arg_codes[0],
+                    arg_codes[1],
+                    arg_codes[0],
+                    arg_codes[0],
+                    arg_codes[1]
+                )),
+                "if_then_else" => Ok(format!(
+                    "({} if _is_truthy({}) else {})",
+                    arg_codes[1], arg_codes[0], arg_codes[2]
+                )),
                 "is_number" => Ok(format!("isinstance({}, (int, float))", arg_codes[0])),
                 "is_string" => Ok(format!("isinstance({}, str)", arg_codes[0])),
                 "is_boolean" => Ok(format!("isinstance({}, bool)", arg_codes[0])),
                 "is_nil" => Ok(format!("({} is None)", arg_codes[0])),
                 "is_array" => Ok(format!("isinstance({}, list)", arg_codes[0])),
                 "is_dictionary" => Ok(format!("isinstance({}, dict)", arg_codes[0])),
-                "coalesce" => Ok(format!("({} if {} is not None else {})", arg_codes[0], arg_codes[0], arg_codes[1])),
-                "default" => Ok(format!("({} if {} is not None else {})", arg_codes[0], arg_codes[0], arg_codes[1])),
+                "coalesce" => Ok(format!(
+                    "({} if {} is not None else {})",
+                    arg_codes[0], arg_codes[0], arg_codes[1]
+                )),
+                "default" => Ok(format!(
+                    "({} if {} is not None else {})",
+                    arg_codes[0], arg_codes[0], arg_codes[1]
+                )),
 
                 _ => Ok(format!("{}({})", name, arg_codes.join(", "))),
             }
@@ -289,7 +333,10 @@ fn transpile_expr(expr: &Expr, indent: &str, depth: usize) -> Result<String, Tra
         Expr::Let { name, value, body } => {
             let value_code = transpile_expr(value, indent, depth)?;
             let body_code = transpile_expr(body, indent, depth)?;
-            Ok(format!("(lambda {}: ({}))({})", name, body_code, value_code))
+            Ok(format!(
+                "(lambda {}: ({}))({})",
+                name, body_code, value_code
+            ))
         }
 
         // If expression
@@ -301,7 +348,10 @@ fn transpile_expr(expr: &Expr, indent: &str, depth: usize) -> Result<String, Tra
             let cond_code = transpile_expr(condition, indent, depth)?;
             let then_code = transpile_expr(then_branch, indent, depth)?;
             let else_code = transpile_expr(else_branch, indent, depth)?;
-            Ok(format!("({} if _is_truthy({}) else {})", then_code, cond_code, else_code))
+            Ok(format!(
+                "({} if _is_truthy({}) else {})",
+                then_code, cond_code, else_code
+            ))
         }
 
         // Binary operations
@@ -321,8 +371,14 @@ fn transpile_expr(expr: &Expr, indent: &str, depth: usize) -> Result<String, Tra
                 BinaryOp::Greater => Ok(format!("({} > {})", left_code, right_code)),
                 BinaryOp::LessEqual => Ok(format!("({} <= {})", left_code, right_code)),
                 BinaryOp::GreaterEqual => Ok(format!("({} >= {})", left_code, right_code)),
-                BinaryOp::And => Ok(format!("(_is_truthy({}) and _is_truthy({}))", left_code, right_code)),
-                BinaryOp::Or => Ok(format!("(_is_truthy({}) or _is_truthy({}))", left_code, right_code)),
+                BinaryOp::And => Ok(format!(
+                    "(_is_truthy({}) and _is_truthy({}))",
+                    left_code, right_code
+                )),
+                BinaryOp::Or => Ok(format!(
+                    "(_is_truthy({}) or _is_truthy({}))",
+                    left_code, right_code
+                )),
             }
         }
 

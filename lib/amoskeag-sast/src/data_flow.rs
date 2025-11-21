@@ -262,7 +262,11 @@ impl DataFlowAnalyzer {
                 all_nodes
             }
 
-            Expr::If { condition, then_branch, else_branch } => {
+            Expr::If {
+                condition,
+                then_branch,
+                else_branch,
+            } => {
                 let cond_nodes = self.analyze_expr(condition);
                 let branch_node = self.graph.add_node(DataFlowNodeType::Branch);
 
@@ -302,7 +306,9 @@ impl DataFlowAnalyzer {
                 let expr_node = self.graph.add_node(DataFlowNodeType::Expression);
 
                 // Connect left to right
-                if let (Some(&last_left), Some(&first_right)) = (left_nodes.last(), right_nodes.first()) {
+                if let (Some(&last_left), Some(&first_right)) =
+                    (left_nodes.last(), right_nodes.first())
+                {
                     self.graph.add_edge(last_left, first_right);
                 }
 
@@ -371,7 +377,9 @@ impl DataFlowAnalyzer {
                 let right_nodes = self.analyze_expr(right);
 
                 // Connect left to right
-                if let (Some(&last_left), Some(&first_right)) = (left_nodes.last(), right_nodes.first()) {
+                if let (Some(&last_left), Some(&first_right)) =
+                    (left_nodes.last(), right_nodes.first())
+                {
                     self.graph.add_edge(last_left, first_right);
                 }
 
@@ -419,6 +427,9 @@ mod tests {
         let graph = analyzer.analyze(&expr);
 
         // Should have a branch node
-        assert!(graph.nodes.iter().any(|n| matches!(n.node_type, DataFlowNodeType::Branch)));
+        assert!(graph
+            .nodes
+            .iter()
+            .any(|n| matches!(n.node_type, DataFlowNodeType::Branch)));
     }
 }

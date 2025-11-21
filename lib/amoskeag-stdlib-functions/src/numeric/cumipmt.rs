@@ -1,7 +1,7 @@
 //! cumipmt function
 
-use crate::{FunctionError, Value};
 use super::ipmt::ipmt;
+use crate::{FunctionError, Value};
 
 /// Calculate cumulative interest paid between two periods
 /// cumipmt(rate: Number, nper: Number, pv: Number, start_period: Number, end_period: Number, type_: Number) -> Number
@@ -47,24 +47,18 @@ pub fn cumipmt(
             let mut total_interest = 0.0;
 
             for period in (*sp as i32)..=(*ep as i32) {
-                let interest = match ipmt(
-                    &Value::Number(*r),
-                    &Value::Number(period as f64),
-                    &Value::Number(*n),
-                    &Value::Number(*v),
-                )? {
-                    Value::Number(i) => i,
-                    _ => unreachable!(),
-                };
+                 let interest = match ipmt(
+                     &Value::Number(*r),
+                     &Value::Number(period as f64),
+                     &Value::Number(*n),
+                     &Value::Number(*v),
+                     &Value::Number(*t),
+                 )? {
+                     Value::Number(i) => i,
+                     _ => unreachable!(),
+                 };
 
-                // Adjust for payment timing
-                let adjusted_interest = if *t == 1.0 {
-                    interest / (1.0 + r)
-                } else {
-                    interest
-                };
-
-                total_interest += adjusted_interest;
+                 total_interest += interest;
             }
 
             Ok(Value::Number(total_interest))

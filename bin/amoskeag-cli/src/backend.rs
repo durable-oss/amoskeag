@@ -74,9 +74,7 @@ pub fn evaluate_with_backend(
     backend_type: &BackendType,
 ) -> Result<Value> {
     match backend_type {
-        BackendType::Interpreter => {
-            evaluate(program, data).map_err(|e| anyhow::anyhow!("{}", e))
-        }
+        BackendType::Interpreter => evaluate(program, data).map_err(|e| anyhow::anyhow!("{}", e)),
         #[cfg(feature = "jit")]
         BackendType::Jit => {
             use amoskeag_jit::backend::JitBackend;

@@ -37,7 +37,8 @@ pub fn irr(values: &Value) -> Result<Value, FunctionError> {
 
             if !has_positive || !has_negative {
                 return Err(FunctionError::ArgumentError {
-                    message: "cash flows must contain both positive and negative values".to_string(),
+                    message: "cash flows must contain both positive and negative values"
+                        .to_string(),
                 });
             }
 
@@ -74,7 +75,8 @@ pub fn irr(values: &Value) -> Result<Value, FunctionError> {
                 // Ensure rate stays in reasonable bounds
                 if !(-0.99..=100.0).contains(&rate) {
                     return Err(FunctionError::ArgumentError {
-                        message: "IRR calculation did not converge to a reasonable value".to_string(),
+                        message: "IRR calculation did not converge to a reasonable value"
+                            .to_string(),
                     });
                 }
             }

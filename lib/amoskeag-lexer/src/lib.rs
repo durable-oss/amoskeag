@@ -44,7 +44,7 @@ pub enum TokenType {
     Percent,
     Pipe,
     Dot,
-    Bang,  // ! (unary not)
+    Bang, // ! (unary not)
 
     // Comparison
     Equal,
@@ -55,8 +55,8 @@ pub enum TokenType {
     GreaterEqual,
 
     // Logical operators (symbols)
-    LogicalAnd,  // &&
-    LogicalOr,   // ||
+    LogicalAnd, // &&
+    LogicalOr,  // ||
 
     // Assignment/Binding
     Assign,
@@ -319,7 +319,10 @@ impl Lexer {
     }
 
     fn advance(&mut self) -> char {
-        debug_assert!(self.position < self.input.len(), "advance() called at end of input");
+        debug_assert!(
+            self.position < self.input.len(),
+            "advance() called at end of input"
+        );
         let ch = self.input[self.position];
         self.position += 1;
         if ch == '\n' {
@@ -378,7 +381,12 @@ impl Lexer {
         }
     }
 
-    fn scan_string(&mut self, quote: char, start_line: usize, start_column: usize) -> Result<Token, LexError> {
+    fn scan_string(
+        &mut self,
+        quote: char,
+        start_line: usize,
+        start_column: usize,
+    ) -> Result<Token, LexError> {
         let mut value = String::new();
 
         while let Some(ch) = self.peek() {
@@ -431,8 +439,16 @@ impl Lexer {
         })
     }
 
-    fn scan_number(&mut self, first: char, start_line: usize, start_column: usize) -> Result<Token, LexError> {
-        debug_assert!(first.is_ascii_digit(), "scan_number() called with non-digit");
+    fn scan_number(
+        &mut self,
+        first: char,
+        start_line: usize,
+        start_column: usize,
+    ) -> Result<Token, LexError> {
+        debug_assert!(
+            first.is_ascii_digit(),
+            "scan_number() called with non-digit"
+        );
         let mut lexeme = String::new();
         lexeme.push(first);
 
@@ -483,7 +499,12 @@ impl Lexer {
         }
     }
 
-    fn scan_identifier(&mut self, first: char, start_line: usize, start_column: usize) -> Result<Token, LexError> {
+    fn scan_identifier(
+        &mut self,
+        first: char,
+        start_line: usize,
+        start_column: usize,
+    ) -> Result<Token, LexError> {
         let mut lexeme = String::new();
         lexeme.push(first);
 
@@ -648,7 +669,10 @@ mod tests {
 
         assert_eq!(tokens[0].token_type, TokenType::String("hello".to_string()));
         assert_eq!(tokens[1].token_type, TokenType::String("world".to_string()));
-        assert_eq!(tokens[2].token_type, TokenType::String("hello\nworld".to_string()));
+        assert_eq!(
+            tokens[2].token_type,
+            TokenType::String("hello\nworld".to_string())
+        );
     }
 
     #[test]
@@ -657,9 +681,15 @@ mod tests {
         let mut lexer = Lexer::new(input);
         let tokens = lexer.tokenize().unwrap();
 
-        assert_eq!(tokens[0].token_type, TokenType::Symbol("approve".to_string()));
+        assert_eq!(
+            tokens[0].token_type,
+            TokenType::Symbol("approve".to_string())
+        );
         assert_eq!(tokens[1].token_type, TokenType::Symbol("deny".to_string()));
-        assert_eq!(tokens[2].token_type, TokenType::Symbol("test.something".to_string()));
+        assert_eq!(
+            tokens[2].token_type,
+            TokenType::Symbol("test.something".to_string())
+        );
     }
 
     #[test]
@@ -710,12 +740,21 @@ mod tests {
         let tokens = lexer.tokenize().unwrap();
 
         assert_eq!(tokens[0].token_type, TokenType::If);
-        assert_eq!(tokens[1].token_type, TokenType::Identifier("driver".to_string()));
+        assert_eq!(
+            tokens[1].token_type,
+            TokenType::Identifier("driver".to_string())
+        );
         assert_eq!(tokens[2].token_type, TokenType::Dot);
-        assert_eq!(tokens[3].token_type, TokenType::Identifier("age".to_string()));
+        assert_eq!(
+            tokens[3].token_type,
+            TokenType::Identifier("age".to_string())
+        );
         assert_eq!(tokens[4].token_type, TokenType::Greater);
         assert_eq!(tokens[5].token_type, TokenType::Number(16.0));
-        assert_eq!(tokens[6].token_type, TokenType::Symbol("continue".to_string()));
+        assert_eq!(
+            tokens[6].token_type,
+            TokenType::Symbol("continue".to_string())
+        );
         assert_eq!(tokens[7].token_type, TokenType::Else);
         assert_eq!(tokens[8].token_type, TokenType::Symbol("deny".to_string()));
         assert_eq!(tokens[9].token_type, TokenType::End);
@@ -727,11 +766,20 @@ mod tests {
         let mut lexer = Lexer::new(input);
         let tokens = lexer.tokenize().unwrap();
 
-        assert_eq!(tokens[0].token_type, TokenType::Identifier("salesperson".to_string()));
+        assert_eq!(
+            tokens[0].token_type,
+            TokenType::Identifier("salesperson".to_string())
+        );
         assert_eq!(tokens[1].token_type, TokenType::Dot);
-        assert_eq!(tokens[2].token_type, TokenType::Identifier("name".to_string()));
+        assert_eq!(
+            tokens[2].token_type,
+            TokenType::Identifier("name".to_string())
+        );
         assert_eq!(tokens[3].token_type, TokenType::Pipe);
-        assert_eq!(tokens[4].token_type, TokenType::Identifier("downcase".to_string()));
+        assert_eq!(
+            tokens[4].token_type,
+            TokenType::Identifier("downcase".to_string())
+        );
     }
 
     #[test]
@@ -756,7 +804,12 @@ mod tests {
         let result = lexer.tokenize();
         assert!(result.is_err());
 
-        if let Err(LexError::UnexpectedCharacter { character, line, column }) = result {
+        if let Err(LexError::UnexpectedCharacter {
+            character,
+            line,
+            column,
+        }) = result
+        {
             assert_eq!(character, '@');
             assert_eq!(line, 1);
             assert_eq!(column, 1);
@@ -808,7 +861,10 @@ mod tests {
         let mut lexer = Lexer::new(input);
         let tokens = lexer.tokenize().unwrap();
 
-        assert_eq!(tokens[0].token_type, TokenType::String("hello\nworld\t\r\\\"'".to_string()));
+        assert_eq!(
+            tokens[0].token_type,
+            TokenType::String("hello\nworld\t\r\\\"'".to_string())
+        );
     }
 
     #[test]
@@ -843,8 +899,14 @@ mod tests {
         let mut lexer = Lexer::new(input);
         let tokens = lexer.tokenize().unwrap();
 
-        assert_eq!(tokens[0].token_type, TokenType::String("double".to_string()));
-        assert_eq!(tokens[1].token_type, TokenType::String("single".to_string()));
+        assert_eq!(
+            tokens[0].token_type,
+            TokenType::String("double".to_string())
+        );
+        assert_eq!(
+            tokens[1].token_type,
+            TokenType::String("single".to_string())
+        );
     }
 
     #[test]
@@ -853,9 +915,18 @@ mod tests {
         let mut lexer = Lexer::new(input);
         let tokens = lexer.tokenize().unwrap();
 
-        assert_eq!(tokens[0].token_type, TokenType::Symbol("simple".to_string()));
-        assert_eq!(tokens[1].token_type, TokenType::Symbol("with spaces".to_string()));
-        assert_eq!(tokens[2].token_type, TokenType::Symbol("single quoted".to_string()));
+        assert_eq!(
+            tokens[0].token_type,
+            TokenType::Symbol("simple".to_string())
+        );
+        assert_eq!(
+            tokens[1].token_type,
+            TokenType::Symbol("with spaces".to_string())
+        );
+        assert_eq!(
+            tokens[2].token_type,
+            TokenType::Symbol("single quoted".to_string())
+        );
     }
 
     #[test]
@@ -924,9 +995,18 @@ mod tests {
         let mut lexer = Lexer::new(input);
         let tokens = lexer.tokenize().unwrap();
 
-        assert_eq!(tokens[0].token_type, TokenType::Identifier("_start".to_string()));
-        assert_eq!(tokens[1].token_type, TokenType::Identifier("middle_".to_string()));
-        assert_eq!(tokens[2].token_type, TokenType::Identifier("_under_score_".to_string()));
+        assert_eq!(
+            tokens[0].token_type,
+            TokenType::Identifier("_start".to_string())
+        );
+        assert_eq!(
+            tokens[1].token_type,
+            TokenType::Identifier("middle_".to_string())
+        );
+        assert_eq!(
+            tokens[2].token_type,
+            TokenType::Identifier("_under_score_".to_string())
+        );
     }
 
     #[test]
@@ -993,7 +1073,13 @@ mod tests {
 
         // Only lowercase "if" is a keyword
         assert_eq!(tokens[0].token_type, TokenType::If);
-        assert_eq!(tokens[1].token_type, TokenType::Identifier("IF".to_string()));
-        assert_eq!(tokens[2].token_type, TokenType::Identifier("If".to_string()));
+        assert_eq!(
+            tokens[1].token_type,
+            TokenType::Identifier("IF".to_string())
+        );
+        assert_eq!(
+            tokens[2].token_type,
+            TokenType::Identifier("If".to_string())
+        );
     }
 }

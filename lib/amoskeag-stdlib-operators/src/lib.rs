@@ -53,9 +53,16 @@ impl std::fmt::Display for Value {
 /// Error types for operator operations
 #[derive(Debug, Clone, PartialEq)]
 pub enum OperatorError {
-    TypeError { expected: String, got: String },
+    TypeError {
+        expected: String,
+        got: String,
+    },
     DivisionByZero,
-    InvalidOperation { op: String, left: String, right: String },
+    InvalidOperation {
+        op: String,
+        left: String,
+        right: String,
+    },
 }
 
 impl std::fmt::Display for OperatorError {
@@ -411,25 +418,37 @@ mod tests {
     #[test]
     fn test_add_type_error() {
         let result = add(&Value::Number(5.0), &Value::String("hello".to_string()));
-        assert!(matches!(result, Err(OperatorError::InvalidOperation { .. })));
+        assert!(matches!(
+            result,
+            Err(OperatorError::InvalidOperation { .. })
+        ));
     }
 
     #[test]
     fn test_subtract_type_error() {
         let result = subtract(&Value::String("hello".to_string()), &Value::Number(5.0));
-        assert!(matches!(result, Err(OperatorError::InvalidOperation { .. })));
+        assert!(matches!(
+            result,
+            Err(OperatorError::InvalidOperation { .. })
+        ));
     }
 
     #[test]
     fn test_multiply_type_error() {
         let result = multiply(&Value::Boolean(true), &Value::Number(5.0));
-        assert!(matches!(result, Err(OperatorError::InvalidOperation { .. })));
+        assert!(matches!(
+            result,
+            Err(OperatorError::InvalidOperation { .. })
+        ));
     }
 
     #[test]
     fn test_divide_type_error() {
         let result = divide(&Value::Number(10.0), &Value::String("2".to_string()));
-        assert!(matches!(result, Err(OperatorError::InvalidOperation { .. })));
+        assert!(matches!(
+            result,
+            Err(OperatorError::InvalidOperation { .. })
+        ));
     }
 
     #[test]
@@ -482,18 +501,39 @@ mod tests {
     #[test]
     fn test_equal_nil() {
         assert_eq!(equal(&Value::Nil, &Value::Nil), Value::Boolean(true));
-        assert_eq!(equal(&Value::Nil, &Value::Number(0.0)), Value::Boolean(false));
+        assert_eq!(
+            equal(&Value::Nil, &Value::Number(0.0)),
+            Value::Boolean(false)
+        );
     }
 
     #[test]
     fn test_comparison_operators_comprehensive() {
         let test_cases = vec![
-            (less_than_or_equal(&Value::Number(5.0), &Value::Number(5.0)), Ok(Value::Boolean(true))),
-            (less_than_or_equal(&Value::Number(3.0), &Value::Number(5.0)), Ok(Value::Boolean(true))),
-            (less_than_or_equal(&Value::Number(7.0), &Value::Number(5.0)), Ok(Value::Boolean(false))),
-            (greater_than_or_equal(&Value::Number(5.0), &Value::Number(5.0)), Ok(Value::Boolean(true))),
-            (greater_than_or_equal(&Value::Number(7.0), &Value::Number(5.0)), Ok(Value::Boolean(true))),
-            (greater_than_or_equal(&Value::Number(3.0), &Value::Number(5.0)), Ok(Value::Boolean(false))),
+            (
+                less_than_or_equal(&Value::Number(5.0), &Value::Number(5.0)),
+                Ok(Value::Boolean(true)),
+            ),
+            (
+                less_than_or_equal(&Value::Number(3.0), &Value::Number(5.0)),
+                Ok(Value::Boolean(true)),
+            ),
+            (
+                less_than_or_equal(&Value::Number(7.0), &Value::Number(5.0)),
+                Ok(Value::Boolean(false)),
+            ),
+            (
+                greater_than_or_equal(&Value::Number(5.0), &Value::Number(5.0)),
+                Ok(Value::Boolean(true)),
+            ),
+            (
+                greater_than_or_equal(&Value::Number(7.0), &Value::Number(5.0)),
+                Ok(Value::Boolean(true)),
+            ),
+            (
+                greater_than_or_equal(&Value::Number(3.0), &Value::Number(5.0)),
+                Ok(Value::Boolean(false)),
+            ),
         ];
 
         for (result, expected) in test_cases {
@@ -504,10 +544,16 @@ mod tests {
     #[test]
     fn test_comparison_type_errors() {
         let result = less_than(&Value::String("a".to_string()), &Value::Number(5.0));
-        assert!(matches!(result, Err(OperatorError::InvalidOperation { .. })));
+        assert!(matches!(
+            result,
+            Err(OperatorError::InvalidOperation { .. })
+        ));
 
         let result = greater_than(&Value::Number(5.0), &Value::Boolean(true));
-        assert!(matches!(result, Err(OperatorError::InvalidOperation { .. })));
+        assert!(matches!(
+            result,
+            Err(OperatorError::InvalidOperation { .. })
+        ));
     }
 
     #[test]
@@ -516,7 +562,8 @@ mod tests {
         let result = logical_and(&Value::Number(5.0), &Value::Boolean(true)).unwrap();
         assert_eq!(result, Value::Boolean(true)); // Numbers are truthy
 
-        let result = logical_or(&Value::Boolean(false), &Value::String("hello".to_string())).unwrap();
+        let result =
+            logical_or(&Value::Boolean(false), &Value::String("hello".to_string())).unwrap();
         assert_eq!(result, Value::Boolean(true)); // Non-empty strings are truthy
 
         let result = logical_and(&Value::Nil, &Value::Boolean(true)).unwrap();
@@ -569,7 +616,10 @@ mod tests {
             expected: "Number".to_string(),
             got: "String".to_string(),
         };
-        assert_eq!(format!("{}", err), "Type error: expected Number, got String");
+        assert_eq!(
+            format!("{}", err),
+            "Type error: expected Number, got String"
+        );
 
         let err = OperatorError::InvalidOperation {
             op: "+".to_string(),

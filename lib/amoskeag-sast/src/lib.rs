@@ -12,17 +12,17 @@
 //! - **Range Analysis**: Tracks possible value ranges for expressions.
 //! - **Data Flow Analysis**: Analyzes how data flows through the program.
 
-mod error_detection;
 mod algebraic_analysis;
 mod constraint_solver;
-mod range_analysis;
 mod data_flow;
+mod error_detection;
+mod range_analysis;
 
-pub use error_detection::{ErrorDetector, ProgrammingError, ErrorSeverity};
 pub use algebraic_analysis::{AlgebraicAnalyzer, InputConstraint, VulnerableInput};
-pub use constraint_solver::{ConstraintSolver, Constraint, Solution};
-pub use range_analysis::{RangeAnalyzer, ValueRange};
+pub use constraint_solver::{Constraint, ConstraintSolver, Solution};
 pub use data_flow::{DataFlowAnalyzer, DataFlowNode};
+pub use error_detection::{ErrorDetector, ErrorSeverity, ProgrammingError};
+pub use range_analysis::{RangeAnalyzer, ValueRange};
 
 use amoskeag_parser::Expr;
 use serde::{Deserialize, Serialize};
@@ -98,15 +98,32 @@ impl SastAnalyzer {
     }
 
     /// Analyze and return a JSON report
-    pub fn analyze_json(&mut self, expr: &Expr, symbols: &[&str]) -> Result<String, serde_json::Error> {
+    pub fn analyze_json(
+        &mut self,
+        expr: &Expr,
+        symbols: &[&str],
+    ) -> Result<String, serde_json::Error> {
         let result = self.analyze(expr, symbols);
         serde_json::to_string_pretty(&result)
     }
 
-    fn calculate_statistics(&self, errors: &[ProgrammingError], vulnerable_inputs: &[VulnerableInput]) -> AnalysisStatistics {
-        let critical_errors = errors.iter().filter(|e| matches!(e.severity, ErrorSeverity::Critical)).count();
-        let warnings = errors.iter().filter(|e| matches!(e.severity, ErrorSeverity::Warning)).count();
-        let info_issues = errors.iter().filter(|e| matches!(e.severity, ErrorSeverity::Info)).count();
+    fn calculate_statistics(
+        &self,
+        errors: &[ProgrammingError],
+        vulnerable_inputs: &[VulnerableInput],
+    ) -> AnalysisStatistics {
+        let critical_errors = errors
+            .iter()
+            .filter(|e| matches!(e.severity, ErrorSeverity::Critical))
+            .count();
+        let warnings = errors
+            .iter()
+            .filter(|e| matches!(e.severity, ErrorSeverity::Warning))
+            .count();
+        let info_issues = errors
+            .iter()
+            .filter(|e| matches!(e.severity, ErrorSeverity::Info))
+            .count();
 
         AnalysisStatistics {
             total_expressions: 0, // Will be calculated during traversal
@@ -148,7 +165,10 @@ mod tests {
         let result = analyze(&expr, &[]);
         assert!(!result.errors.is_empty());
         // Check for division by zero (case insensitive)
-        let has_div_zero = result.errors.iter().any(|e| e.message.to_lowercase().contains("division"));
+        let has_div_zero = result
+            .errors
+            .iter()
+            .any(|e| e.message.to_lowercase().contains("division"));
         if !has_div_zero {
             eprintln!("Errors found:");
             for e in &result.errors {

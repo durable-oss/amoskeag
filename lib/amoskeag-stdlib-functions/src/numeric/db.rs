@@ -8,9 +8,21 @@ use crate::{FunctionError, Value};
 /// Returns the depreciation of an asset for a specified period using the fixed-declining balance method
 ///
 /// Example: db(1000000, 100000, 6, 1, 7) = depreciation for first year with 7 months in first year
-pub fn db(cost: &Value, salvage: &Value, life: &Value, period: &Value, month: &Value) -> Result<Value, FunctionError> {
+pub fn db(
+    cost: &Value,
+    salvage: &Value,
+    life: &Value,
+    period: &Value,
+    month: &Value,
+) -> Result<Value, FunctionError> {
     match (cost, salvage, life, period, month) {
-        (Value::Number(c), Value::Number(s), Value::Number(l), Value::Number(p), Value::Number(m)) => {
+        (
+            Value::Number(c),
+            Value::Number(s),
+            Value::Number(l),
+            Value::Number(p),
+            Value::Number(m),
+        ) => {
             if *l <= 0.0 {
                 return Err(FunctionError::ArgumentError {
                     message: "life must be greater than 0".to_string(),
@@ -29,6 +41,12 @@ pub fn db(cost: &Value, salvage: &Value, life: &Value, period: &Value, month: &V
                 });
             }
 
+            if *p != (*p as i32 as f64) {
+                return Err(FunctionError::ArgumentError {
+                    message: "period must be an integer".to_string(),
+                });
+            }
+
             if *s >= *c {
                 return Ok(Value::Number(0.0));
             }
@@ -37,14 +55,14 @@ pub fn db(cost: &Value, salvage: &Value, life: &Value, period: &Value, month: &V
             let rate = 1.0 - (s / c).powf(1.0 / l);
             let rate = (rate * 1000.0).round() / 1000.0; // Round to 3 decimal places
 
-            let depreciation;
+            let mut temp_total = 0.0;
+            let mut depreciation;
 
             // First period (partial year if month != 12)
             if *p == 1.0 {
                 depreciation = c * rate * m / 12.0;
             } else {
                 // Calculate depreciation for previous periods
-                let mut temp_total = 0.0;
 
                 // First period
                 let first_depr = c * rate * m / 12.0;
@@ -65,6 +83,11 @@ pub fn db(cost: &Value, salvage: &Value, life: &Value, period: &Value, month: &V
                 }
             }
 
+            let current_book_value = c - temp_total;
+            if current_book_value - depreciation < *s {
+                depreciation = (current_book_value - *s).max(0.0);
+            }
+
             Ok(Value::Number(depreciation))
         }
         (Value::Number(_), Value::Number(_), Value::Number(_), Value::Number(_), _) => {
@@ -73,10 +96,12 @@ pub fn db(cost: &Value, salvage: &Value, life: &Value, period: &Value, month: &V
                 got: month.type_name().to_string(),
             })
         }
-        (Value::Number(_), Value::Number(_), Value::Number(_), _, _) => Err(FunctionError::TypeError {
-            expected: "Number".to_string(),
-            got: period.type_name().to_string(),
-        }),
+        (Value::Number(_), Value::Number(_), Value::Number(_), _, _) => {
+            Err(FunctionError::TypeError {
+                expected: "Number".to_string(),
+                got: period.type_name().to_string(),
+            })
+        }
         (Value::Number(_), Value::Number(_), _, _, _) => Err(FunctionError::TypeError {
             expected: "Number".to_string(),
             got: life.type_name().to_string(),

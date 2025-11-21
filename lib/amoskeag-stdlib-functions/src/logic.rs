@@ -213,7 +213,10 @@ mod tests {
     #[test]
     fn test_is_array() {
         assert_eq!(is_array(&Value::Array(vec![])), Value::Boolean(true));
-        assert_eq!(is_array(&Value::String("[]".to_string())), Value::Boolean(false));
+        assert_eq!(
+            is_array(&Value::String("[]".to_string())),
+            Value::Boolean(false)
+        );
     }
 
     #[test]

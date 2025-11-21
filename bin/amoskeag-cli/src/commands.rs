@@ -100,7 +100,8 @@ fn validate_file_path(path: &str) -> Result<()> {
 }
 
 fn validate_file_size(path: &str, max_size: u64, file_type: &str) -> Result<()> {
-    let metadata = fs::metadata(path).with_context(|| format!("Failed to read file metadata: {}", path))?;
+    let metadata =
+        fs::metadata(path).with_context(|| format!("Failed to read file metadata: {}", path))?;
 
     if metadata.len() > max_size {
         bail!(
@@ -261,7 +262,12 @@ mod tests {
 
     #[test]
     fn test_run_file_nonexistent() {
-        let result = run_file("/nonexistent/file.amos", None, &[], BackendType::Interpreter);
+        let result = run_file(
+            "/nonexistent/file.amos",
+            None,
+            &[],
+            BackendType::Interpreter,
+        );
         assert!(result.is_err());
     }
 

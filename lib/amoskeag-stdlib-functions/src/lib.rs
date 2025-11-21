@@ -9,11 +9,11 @@ pub use amoskeag_stdlib_operators::{OperatorError, Value};
 // Re-export inventory for function registration
 pub use inventory;
 
-pub mod string;
-pub mod numeric;
 pub mod collection;
-pub mod logic;
 pub mod date;
+pub mod logic;
+pub mod numeric;
+pub mod string;
 
 /// Error types for function operations
 #[derive(Debug, Clone, PartialEq)]
@@ -34,7 +34,11 @@ impl std::fmt::Display for FunctionError {
                 write!(f, "Argument error: {}", message)
             }
             FunctionError::IndexOutOfBounds { index, len } => {
-                write!(f, "Index out of bounds: index {} out of length {}", index, len)
+                write!(
+                    f,
+                    "Index out of bounds: index {} out of length {}",
+                    index, len
+                )
             }
             FunctionError::InvalidOperation { message } => {
                 write!(f, "Invalid operation: {}", message)
@@ -46,8 +50,8 @@ impl std::fmt::Display for FunctionError {
 impl std::error::Error for FunctionError {}
 
 // Re-export all public functions for convenience
-pub use string::*;
-pub use numeric::*;
 pub use collection::*;
-pub use logic::*;
 pub use date::*;
+pub use logic::*;
+pub use numeric::*;
+pub use string::*;

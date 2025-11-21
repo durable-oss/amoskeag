@@ -2,10 +2,10 @@
 //!
 //! Detects common programming errors in Amoskeag expressions.
 
+use crate::range_analysis::ValueRange;
 use amoskeag_parser::{BinaryOp, Expr, UnaryOp};
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
-use crate::range_analysis::ValueRange;
 
 /// Severity level of a detected error
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -80,7 +80,12 @@ impl ErrorDetector {
     }
 
     /// Detect errors in an expression
-    pub fn detect(&mut self, expr: &Expr, symbols: &[&str], ranges: &HashMap<String, ValueRange>) -> Vec<ProgrammingError> {
+    pub fn detect(
+        &mut self,
+        expr: &Expr,
+        symbols: &[&str],
+        ranges: &HashMap<String, ValueRange>,
+    ) -> Vec<ProgrammingError> {
         self.errors.clear();
         self.defined_symbols = symbols.iter().map(|s| s.to_string()).collect();
         self.used_variables.clear();
@@ -105,10 +110,16 @@ impl ErrorDetector {
                 if !self.defined_symbols.contains(s) {
                     self.errors.push(ProgrammingError {
                         severity: ErrorSeverity::Warning,
-                        message: format!("Symbol '{}' may not be defined in the runtime context", s),
+                        message: format!(
+                            "Symbol '{}' may not be defined in the runtime context",
+                            s
+                        ),
                         category: ErrorCategory::UndefinedVariable,
                         location: Some(format!("symbol: {}", s)),
-                        suggestion: Some(format!("Ensure symbol '{}' is in the allowed symbols list", s)),
+                        suggestion: Some(format!(
+                            "Ensure symbol '{}' is in the allowed symbols list",
+                            s
+                        )),
                     });
                 }
             }
@@ -121,10 +132,15 @@ impl ErrorDetector {
                 if parts.len() > 1 {
                     self.errors.push(ProgrammingError {
                         severity: ErrorSeverity::Info,
-                        message: format!("Nested property access '{}' may fail if intermediate values are nil", var_name),
+                        message: format!(
+                            "Nested property access '{}' may fail if intermediate values are nil",
+                            var_name
+                        ),
                         category: ErrorCategory::NullDereference,
                         location: Some(format!("variable: {}", var_name)),
-                        suggestion: Some("Consider using defensive checks or coalesce function".to_string()),
+                        suggestion: Some(
+                            "Consider using defensive checks or coalesce function".to_string(),
+                        ),
                     });
                 }
             }
@@ -138,10 +154,16 @@ impl ErrorDetector {
                 if elements.len() > 1000 {
                     self.errors.push(ProgrammingError {
                         severity: ErrorSeverity::Warning,
-                        message: format!("Large array literal with {} elements may impact performance", elements.len()),
+                        message: format!(
+                            "Large array literal with {} elements may impact performance",
+                            elements.len()
+                        ),
                         category: ErrorCategory::Complexity,
                         location: Some("array literal".to_string()),
-                        suggestion: Some("Consider generating arrays programmatically or using smaller datasets".to_string()),
+                        suggestion: Some(
+                            "Consider generating arrays programmatically or using smaller datasets"
+                                .to_string(),
+                        ),
                     });
                 }
             }
@@ -193,7 +215,11 @@ impl ErrorDetector {
                 self.analyze_expr(body, ranges);
             }
 
-            Expr::If { condition, then_branch, else_branch } => {
+            Expr::If {
+                condition,
+                then_branch,
+                else_branch,
+            } => {
                 self.analyze_expr(condition, ranges);
 
                 // Check for constant conditions
@@ -201,10 +227,16 @@ impl ErrorDetector {
                     let dead_branch = if const_val { "else" } else { "then" };
                     self.errors.push(ProgrammingError {
                         severity: ErrorSeverity::Warning,
-                        message: format!("Condition is always {}, {} branch is unreachable", const_val, dead_branch),
+                        message: format!(
+                            "Condition is always {}, {} branch is unreachable",
+                            const_val, dead_branch
+                        ),
                         category: ErrorCategory::UnreachableCode,
                         location: Some("if expression".to_string()),
-                        suggestion: Some(format!("Remove the if expression and keep only the {} branch", if const_val { "then" } else { "else" })),
+                        suggestion: Some(format!(
+                            "Remove the if expression and keep only the {} branch",
+                            if const_val { "then" } else { "else" }
+                        )),
                     });
                 }
 
@@ -224,8 +256,18 @@ impl ErrorDetector {
                                 severity: ErrorSeverity::Critical,
                                 message: "Division by zero".to_string(),
                                 category: ErrorCategory::DivisionByZero,
-                                location: Some(format!("{} by zero", if matches!(op, BinaryOp::Divide) { "division" } else { "modulo" })),
-                                suggestion: Some("Replace divisor with a non-zero value or add a check".to_string()),
+                                location: Some(format!(
+                                    "{} by zero",
+                                    if matches!(op, BinaryOp::Divide) {
+                                        "division"
+                                    } else {
+                                        "modulo"
+                                    }
+                                )),
+                                suggestion: Some(
+                                    "Replace divisor with a non-zero value or add a check"
+                                        .to_string(),
+                                ),
                             });
                         }
                     } else {
@@ -258,10 +300,15 @@ impl ErrorDetector {
                             if !result.is_finite() {
                                 self.errors.push(ProgrammingError {
                                     severity: ErrorSeverity::Warning,
-                                    message: format!("Arithmetic operation results in overflow: {} {} {}", a, op, b),
+                                    message: format!(
+                                        "Arithmetic operation results in overflow: {} {} {}",
+                                        a, op, b
+                                    ),
                                     category: ErrorCategory::IntegerOverflow,
                                     location: Some("arithmetic expression".to_string()),
-                                    suggestion: Some("Use smaller values or check for overflow".to_string()),
+                                    suggestion: Some(
+                                        "Use smaller values or check for overflow".to_string(),
+                                    ),
                                 });
                             }
                         }
@@ -289,7 +336,11 @@ impl ErrorDetector {
 
                 // Check for double negation
                 if let UnaryOp::Negate = op {
-                    if let Expr::Unary { op: UnaryOp::Negate, .. } = **operand {
+                    if let Expr::Unary {
+                        op: UnaryOp::Negate,
+                        ..
+                    } = **operand
+                    {
                         self.errors.push(ProgrammingError {
                             severity: ErrorSeverity::Info,
                             message: "Double negation can be simplified".to_string(),
@@ -308,7 +359,12 @@ impl ErrorDetector {
         }
     }
 
-    fn check_function_call(&mut self, name: &str, args: &[Expr], _ranges: &HashMap<String, ValueRange>) {
+    fn check_function_call(
+        &mut self,
+        name: &str,
+        args: &[Expr],
+        _ranges: &HashMap<String, ValueRange>,
+    ) {
         // Check for common risky patterns
         match name {
             "at" => {
@@ -319,7 +375,11 @@ impl ErrorDetector {
                         if index < 0 || index >= arr.len() as i64 {
                             self.errors.push(ProgrammingError {
                                 severity: ErrorSeverity::Critical,
-                                message: format!("Array index {} out of bounds (array length: {})", index, arr.len()),
+                                message: format!(
+                                    "Array index {} out of bounds (array length: {})",
+                                    index,
+                                    arr.len()
+                                ),
                                 category: ErrorCategory::ArrayOutOfBounds,
                                 location: Some(format!("at({}, {})", arr.len(), index)),
                                 suggestion: Some("Use an index within array bounds".to_string()),
@@ -351,53 +411,51 @@ impl ErrorDetector {
     fn is_constant_boolean(&self, expr: &Expr) -> Option<bool> {
         match expr {
             Expr::Boolean(b) => Some(*b),
-            Expr::Binary { op, left, right } => {
-                match op {
-                    BinaryOp::Equal => {
-                        if let (Expr::Number(a), Expr::Number(b)) = (&**left, &**right) {
-                            Some(a == b)
-                        } else {
-                            None
-                        }
+            Expr::Binary { op, left, right } => match op {
+                BinaryOp::Equal => {
+                    if let (Expr::Number(a), Expr::Number(b)) = (&**left, &**right) {
+                        Some(a == b)
+                    } else {
+                        None
                     }
-                    BinaryOp::NotEqual => {
-                        if let (Expr::Number(a), Expr::Number(b)) = (&**left, &**right) {
-                            Some(a != b)
-                        } else {
-                            None
-                        }
-                    }
-                    BinaryOp::Less => {
-                        if let (Expr::Number(a), Expr::Number(b)) = (&**left, &**right) {
-                            Some(a < b)
-                        } else {
-                            None
-                        }
-                    }
-                    BinaryOp::Greater => {
-                        if let (Expr::Number(a), Expr::Number(b)) = (&**left, &**right) {
-                            Some(a > b)
-                        } else {
-                            None
-                        }
-                    }
-                    BinaryOp::LessEqual => {
-                        if let (Expr::Number(a), Expr::Number(b)) = (&**left, &**right) {
-                            Some(a <= b)
-                        } else {
-                            None
-                        }
-                    }
-                    BinaryOp::GreaterEqual => {
-                        if let (Expr::Number(a), Expr::Number(b)) = (&**left, &**right) {
-                            Some(a >= b)
-                        } else {
-                            None
-                        }
-                    }
-                    _ => None,
                 }
-            }
+                BinaryOp::NotEqual => {
+                    if let (Expr::Number(a), Expr::Number(b)) = (&**left, &**right) {
+                        Some(a != b)
+                    } else {
+                        None
+                    }
+                }
+                BinaryOp::Less => {
+                    if let (Expr::Number(a), Expr::Number(b)) = (&**left, &**right) {
+                        Some(a < b)
+                    } else {
+                        None
+                    }
+                }
+                BinaryOp::Greater => {
+                    if let (Expr::Number(a), Expr::Number(b)) = (&**left, &**right) {
+                        Some(a > b)
+                    } else {
+                        None
+                    }
+                }
+                BinaryOp::LessEqual => {
+                    if let (Expr::Number(a), Expr::Number(b)) = (&**left, &**right) {
+                        Some(a <= b)
+                    } else {
+                        None
+                    }
+                }
+                BinaryOp::GreaterEqual => {
+                    if let (Expr::Number(a), Expr::Number(b)) = (&**left, &**right) {
+                        Some(a >= b)
+                    } else {
+                        None
+                    }
+                }
+                _ => None,
+            },
             _ => None,
         }
     }
@@ -417,7 +475,10 @@ impl ErrorDetector {
                     message: format!("Variable '{}' is defined but never used", defined),
                     category: ErrorCategory::UnusedVariable,
                     location: Some(format!("let binding: {}", defined)),
-                    suggestion: Some(format!("Remove unused variable '{}' or use it in the expression", defined)),
+                    suggestion: Some(format!(
+                        "Remove unused variable '{}' or use it in the expression",
+                        defined
+                    )),
                 });
             }
         }
@@ -441,7 +502,9 @@ mod tests {
         let expr = parse("10 / 0").unwrap();
         let errors = detector.detect(&expr, &[], &HashMap::new());
         assert!(!errors.is_empty());
-        assert!(errors.iter().any(|e| matches!(e.category, ErrorCategory::DivisionByZero)));
+        assert!(errors
+            .iter()
+            .any(|e| matches!(e.category, ErrorCategory::DivisionByZero)));
     }
 
     #[test]
@@ -449,7 +512,9 @@ mod tests {
         let mut detector = ErrorDetector::new();
         let expr = parse("if true :yes else :no end").unwrap();
         let errors = detector.detect(&expr, &[], &HashMap::new());
-        assert!(errors.iter().any(|e| matches!(e.category, ErrorCategory::UnreachableCode)));
+        assert!(errors
+            .iter()
+            .any(|e| matches!(e.category, ErrorCategory::UnreachableCode)));
     }
 
     #[test]
@@ -457,7 +522,9 @@ mod tests {
         let mut detector = ErrorDetector::new();
         let expr = parse("let x = 5 in 10").unwrap();
         let errors = detector.detect(&expr, &[], &HashMap::new());
-        assert!(errors.iter().any(|e| matches!(e.category, ErrorCategory::UnusedVariable)));
+        assert!(errors
+            .iter()
+            .any(|e| matches!(e.category, ErrorCategory::UnusedVariable)));
     }
 
     #[test]
@@ -465,7 +532,10 @@ mod tests {
         let mut detector = ErrorDetector::new();
         let expr = parse("let x = 5 in x + 10").unwrap();
         let errors = detector.detect(&expr, &[], &HashMap::new());
-        let critical_errors: Vec<_> = errors.iter().filter(|e| matches!(e.severity, ErrorSeverity::Critical)).collect();
+        let critical_errors: Vec<_> = errors
+            .iter()
+            .filter(|e| matches!(e.severity, ErrorSeverity::Critical))
+            .collect();
         assert_eq!(critical_errors.len(), 0);
     }
 }

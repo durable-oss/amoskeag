@@ -125,7 +125,9 @@ impl fmt::Display for UnaryOp {
 /// Parser errors
 #[derive(Error, Debug)]
 pub enum ParseError {
-    #[error("Unexpected token: expected {expected}, found {found} at line {line}, column {column}")]
+    #[error(
+        "Unexpected token: expected {expected}, found {found} at line {line}, column {column}"
+    )]
     UnexpectedToken {
         expected: String,
         found: String,
@@ -773,10 +775,7 @@ mod tests {
             expr,
             Expr::FunctionCall {
                 name: "truncate".to_string(),
-                args: vec![
-                    Expr::Variable(vec!["name".to_string()]),
-                    Expr::Number(10.0),
-                ],
+                args: vec![Expr::Variable(vec!["name".to_string()]), Expr::Number(10.0),],
             }
         );
     }
@@ -1013,7 +1012,12 @@ mod tests {
     fn test_parse_nested_if() {
         let expr = parse("if true if false 1 else 2 end else 3 end").unwrap();
 
-        if let Expr::If { condition, then_branch, else_branch } = expr {
+        if let Expr::If {
+            condition,
+            then_branch,
+            else_branch,
+        } = expr
+        {
             assert_eq!(*condition, Expr::Boolean(true));
             assert!(matches!(*then_branch, Expr::If { .. }));
             assert_eq!(*else_branch, Expr::Number(3.0));
@@ -1041,11 +1045,7 @@ mod tests {
             expr,
             Expr::FunctionCall {
                 name: "add".to_string(),
-                args: vec![
-                    Expr::Number(1.0),
-                    Expr::Number(2.0),
-                    Expr::Number(3.0),
-                ],
+                args: vec![Expr::Number(1.0), Expr::Number(2.0), Expr::Number(3.0),],
             }
         );
     }
@@ -1260,7 +1260,8 @@ mod tests {
 
     #[test]
     fn test_parse_nested_multiline_if() {
-        let expr = parse(r#"
+        let expr = parse(
+            r#"
             if true
               if false
                 1
@@ -1270,9 +1271,16 @@ mod tests {
             else
               3
             end
-        "#).unwrap();
+        "#,
+        )
+        .unwrap();
 
-        if let Expr::If { condition, then_branch, else_branch } = expr {
+        if let Expr::If {
+            condition,
+            then_branch,
+            else_branch,
+        } = expr
+        {
             assert_eq!(*condition, Expr::Boolean(true));
             assert!(matches!(*then_branch, Expr::If { .. }));
             assert_eq!(*else_branch, Expr::Number(3.0));
@@ -1283,7 +1291,8 @@ mod tests {
 
     #[test]
     fn test_parse_deeply_nested_if() {
-        let expr = parse(r#"
+        let expr = parse(
+            r#"
             if true
               if false
                 if true
@@ -1297,7 +1306,9 @@ mod tests {
             else
               4
             end
-        "#).unwrap();
+        "#,
+        )
+        .unwrap();
 
         // Just verify it parses successfully
         assert!(matches!(expr, Expr::If { .. }));
@@ -1307,6 +1318,12 @@ mod tests {
     fn test_parse_complex_logical_expression() {
         let expr = parse("(true || false) && (false || true)").unwrap();
         // Should parse with proper precedence and parentheses
-        assert!(matches!(expr, Expr::Binary { op: BinaryOp::And, .. }));
+        assert!(matches!(
+            expr,
+            Expr::Binary {
+                op: BinaryOp::And,
+                ..
+            }
+        ));
     }
 }

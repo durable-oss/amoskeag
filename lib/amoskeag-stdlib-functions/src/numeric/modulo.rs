@@ -12,7 +12,10 @@ pub fn modulo_fn(a: &Value, b: &Value) -> Result<Value, FunctionError> {
                     message: "Modulo by zero".to_string(),
                 })
             } else {
-                Ok(Value::Number(x % y))
+                // Use the same as Rust's % operator: x - trunc(x / y) * y
+                let quotient = (x / y).trunc();
+                let result = x - quotient * y;
+                Ok(Value::Number(result))
             }
         }
         (Value::Number(_), _) => Err(FunctionError::TypeError {
