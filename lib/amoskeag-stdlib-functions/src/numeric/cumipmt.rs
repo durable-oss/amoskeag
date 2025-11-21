@@ -47,18 +47,18 @@ pub fn cumipmt(
             let mut total_interest = 0.0;
 
             for period in (*sp as i32)..=(*ep as i32) {
-                 let interest = match ipmt(
-                     &Value::Number(*r),
-                     &Value::Number(period as f64),
-                     &Value::Number(*n),
-                     &Value::Number(*v),
-                     &Value::Number(*t),
-                 )? {
-                     Value::Number(i) => i,
-                     _ => unreachable!(),
-                 };
+                let interest = match ipmt(
+                    &Value::Number(*r),
+                    &Value::Number(period as f64),
+                    &Value::Number(*n),
+                    &Value::Number(*v),
+                    &Value::Number(*t),
+                )? {
+                    Value::Number(i) => i,
+                    _ => unreachable!(),
+                };
 
-                 total_interest += interest;
+                total_interest += interest;
             }
 
             Ok(Value::Number(total_interest))

@@ -30,7 +30,11 @@ pub fn pmt(rate: &Value, nper: &Value, pv: &Value, type_: &Value) -> Result<Valu
             // Handle zero interest rate case
             if *r == 0.0 {
                 let payment = -*p / *n;
-                return Ok(Value::Number(if *t == 1.0 { payment / (1.0 + *r) } else { payment }));
+                return Ok(Value::Number(if *t == 1.0 {
+                    payment / (1.0 + *r)
+                } else {
+                    payment
+                }));
             }
 
             // Standard formula: PMT = PV * (r * (1 + r)^n) / ((1 + r)^n - 1)
@@ -38,14 +42,20 @@ pub fn pmt(rate: &Value, nper: &Value, pv: &Value, type_: &Value) -> Result<Valu
             let payment = -*p * (*r * factor) / (factor - 1.0);
 
             // For type 1, adjust payment
-            let adjusted_payment = if *t == 1.0 { payment / (1.0 + *r) } else { payment };
+            let adjusted_payment = if *t == 1.0 {
+                payment / (1.0 + *r)
+            } else {
+                payment
+            };
 
             Ok(Value::Number(adjusted_payment))
         }
-        (Value::Number(_), Value::Number(_), Value::Number(_), _) => Err(FunctionError::TypeError {
-            expected: "Number".to_string(),
-            got: type_.type_name().to_string(),
-        }),
+        (Value::Number(_), Value::Number(_), Value::Number(_), _) => {
+            Err(FunctionError::TypeError {
+                expected: "Number".to_string(),
+                got: type_.type_name().to_string(),
+            })
+        }
         (Value::Number(_), Value::Number(_), _, _) => Err(FunctionError::TypeError {
             expected: "Number".to_string(),
             got: pv.type_name().to_string(),

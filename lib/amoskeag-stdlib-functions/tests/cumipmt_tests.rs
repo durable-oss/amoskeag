@@ -1,6 +1,6 @@
 use amoskeag_stdlib_functions::numeric::cumipmt;
-use amoskeag_stdlib_operators::Value;
 use amoskeag_stdlib_functions::FunctionError;
+use amoskeag_stdlib_operators::Value;
 
 #[test]
 fn test_cumipmt_wrong_type_rate() {

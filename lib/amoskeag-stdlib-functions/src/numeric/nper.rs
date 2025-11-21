@@ -31,7 +31,7 @@ pub fn nper(rate: &Value, pmt: &Value, pv: &Value) -> Result<Value, FunctionErro
             }
 
             // Formula: NPER = -log(PMT / (PMT - PV * r)) / log(1 + r)
-            let num_periods = - (p / denominator).ln() / (1.0 + r).ln();
+            let num_periods = -(p / denominator).ln() / (1.0 + r).ln();
 
             Ok(Value::Number(num_periods))
         }

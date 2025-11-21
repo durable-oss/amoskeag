@@ -368,7 +368,10 @@ mod tests {
 
         // Very large numbers
         assert_eq!(floor(&Value::Number(1e308)).unwrap(), Value::Number(1e308));
-        assert_eq!(floor(&Value::Number(-1e308)).unwrap(), Value::Number(-1e308));
+        assert_eq!(
+            floor(&Value::Number(-1e308)).unwrap(),
+            Value::Number(-1e308)
+        );
 
         // Very small numbers
         assert_eq!(floor(&Value::Number(1e-323)).unwrap(), Value::Number(0.0));
@@ -525,7 +528,11 @@ mod tests {
             Value::Number(1.234567890123456789)
         );
         assert_eq!(
-            round(&Value::Number(60000000000000000000.0), &Value::Number(-21.0)).unwrap(),
+            round(
+                &Value::Number(60000000000000000000.0),
+                &Value::Number(-21.0)
+            )
+            .unwrap(),
             Value::Number(100000000000000000000.0)
         );
 
@@ -535,7 +542,11 @@ mod tests {
             Value::Number(1.234567890123456789)
         );
         assert_eq!(
-            round(&Value::Number(60000000000000000000.0), &Value::Number(-20.0)).unwrap(),
+            round(
+                &Value::Number(60000000000000000000.0),
+                &Value::Number(-20.0)
+            )
+            .unwrap(),
             Value::Number(100000000000000000000.0)
         );
 
@@ -701,7 +712,11 @@ mod tests {
             plus(&Value::Number(1.0), &Value::Number(f64::NEG_INFINITY)).unwrap(),
             Value::Number(f64::NEG_INFINITY)
         );
-        let inf_minus_inf = plus(&Value::Number(f64::INFINITY), &Value::Number(f64::NEG_INFINITY)).unwrap();
+        let inf_minus_inf = plus(
+            &Value::Number(f64::INFINITY),
+            &Value::Number(f64::NEG_INFINITY),
+        )
+        .unwrap();
         match inf_minus_inf {
             Value::Number(n) => assert!(n.is_nan()),
             _ => panic!("Expected Number, got {:?}", inf_minus_inf),
@@ -760,11 +775,17 @@ mod tests {
             Err(FunctionError::TypeError { .. })
         ));
         assert!(matches!(
-            plus(&Value::Dictionary(std::collections::HashMap::new()), &Value::Number(1.0)),
+            plus(
+                &Value::Dictionary(std::collections::HashMap::new()),
+                &Value::Number(1.0)
+            ),
             Err(FunctionError::TypeError { .. })
         ));
         assert!(matches!(
-            plus(&Value::Number(1.0), &Value::Dictionary(std::collections::HashMap::new())),
+            plus(
+                &Value::Number(1.0),
+                &Value::Dictionary(std::collections::HashMap::new())
+            ),
             Err(FunctionError::TypeError { .. })
         ));
         assert!(matches!(
@@ -873,7 +894,8 @@ mod tests {
             Value::Number(f64::INFINITY)
         );
         // Infinity minus infinity = NaN
-        let inf_minus_inf = minus(&Value::Number(f64::INFINITY), &Value::Number(f64::INFINITY)).unwrap();
+        let inf_minus_inf =
+            minus(&Value::Number(f64::INFINITY), &Value::Number(f64::INFINITY)).unwrap();
         match inf_minus_inf {
             Value::Number(n) => assert!(n.is_nan()),
             _ => panic!("Expected Number, got {:?}", inf_minus_inf),
@@ -932,11 +954,17 @@ mod tests {
             Err(FunctionError::TypeError { .. })
         ));
         assert!(matches!(
-            minus(&Value::Dictionary(std::collections::HashMap::new()), &Value::Number(1.0)),
+            minus(
+                &Value::Dictionary(std::collections::HashMap::new()),
+                &Value::Number(1.0)
+            ),
             Err(FunctionError::TypeError { .. })
         ));
         assert!(matches!(
-            minus(&Value::Number(1.0), &Value::Dictionary(std::collections::HashMap::new())),
+            minus(
+                &Value::Number(1.0),
+                &Value::Dictionary(std::collections::HashMap::new())
+            ),
             Err(FunctionError::TypeError { .. })
         ));
         assert!(matches!(
@@ -1061,11 +1089,19 @@ mod tests {
             Value::Number(f64::NEG_INFINITY)
         );
         assert_eq!(
-            times(&Value::Number(f64::INFINITY), &Value::Number(f64::NEG_INFINITY)).unwrap(),
+            times(
+                &Value::Number(f64::INFINITY),
+                &Value::Number(f64::NEG_INFINITY)
+            )
+            .unwrap(),
             Value::Number(f64::NEG_INFINITY)
         );
         assert_eq!(
-            times(&Value::Number(f64::NEG_INFINITY), &Value::Number(f64::NEG_INFINITY)).unwrap(),
+            times(
+                &Value::Number(f64::NEG_INFINITY),
+                &Value::Number(f64::NEG_INFINITY)
+            )
+            .unwrap(),
             Value::Number(f64::INFINITY)
         );
 
@@ -1122,11 +1158,17 @@ mod tests {
             Err(FunctionError::TypeError { .. })
         ));
         assert!(matches!(
-            times(&Value::Dictionary(std::collections::HashMap::new()), &Value::Number(1.0)),
+            times(
+                &Value::Dictionary(std::collections::HashMap::new()),
+                &Value::Number(1.0)
+            ),
             Err(FunctionError::TypeError { .. })
         ));
         assert!(matches!(
-            times(&Value::Number(1.0), &Value::Dictionary(std::collections::HashMap::new())),
+            times(
+                &Value::Number(1.0),
+                &Value::Dictionary(std::collections::HashMap::new())
+            ),
             Err(FunctionError::TypeError { .. })
         ));
         assert!(matches!(
@@ -1282,14 +1324,19 @@ mod tests {
         );
 
         // Infinity divided by infinity = NaN
-        let inf_div_inf = divided_by(&Value::Number(f64::INFINITY), &Value::Number(f64::INFINITY)).unwrap();
+        let inf_div_inf =
+            divided_by(&Value::Number(f64::INFINITY), &Value::Number(f64::INFINITY)).unwrap();
         match inf_div_inf {
             Value::Number(n) => assert!(n.is_nan()),
             _ => panic!("Expected Number, got {:?}", inf_div_inf),
         }
 
         // Negative infinity divided by infinity = NaN
-        let neg_inf_div_inf = divided_by(&Value::Number(f64::NEG_INFINITY), &Value::Number(f64::INFINITY)).unwrap();
+        let neg_inf_div_inf = divided_by(
+            &Value::Number(f64::NEG_INFINITY),
+            &Value::Number(f64::INFINITY),
+        )
+        .unwrap();
         match neg_inf_div_inf {
             Value::Number(n) => assert!(n.is_nan()),
             _ => panic!("Expected Number, got {:?}", neg_inf_div_inf),
@@ -1338,7 +1385,10 @@ mod tests {
             Err(FunctionError::TypeError { .. })
         ));
         assert!(matches!(
-            divided_by(&Value::Dictionary(std::collections::HashMap::new()), &Value::Number(2.0)),
+            divided_by(
+                &Value::Dictionary(std::collections::HashMap::new()),
+                &Value::Number(2.0)
+            ),
             Err(FunctionError::TypeError { .. })
         ));
         assert!(matches!(
@@ -1364,7 +1414,10 @@ mod tests {
             Err(FunctionError::TypeError { .. })
         ));
         assert!(matches!(
-            divided_by(&Value::Number(10.0), &Value::Dictionary(std::collections::HashMap::new())),
+            divided_by(
+                &Value::Number(10.0),
+                &Value::Dictionary(std::collections::HashMap::new())
+            ),
             Err(FunctionError::TypeError { .. })
         ));
         assert!(matches!(
@@ -1573,7 +1626,10 @@ mod tests {
         // First argument not Number
         assert!(matches!(
             modulo_fn(&Value::String("10".to_string()), &Value::Number(3.0)),
-            Err(FunctionError::TypeError { expected: _, got: _ })
+            Err(FunctionError::TypeError {
+                expected: _,
+                got: _
+            })
         ));
         assert!(matches!(
             modulo_fn(&Value::Boolean(true), &Value::Number(3.0)),
@@ -1697,7 +1753,11 @@ mod tests {
             Value::Number(1.0)
         );
         assert_eq!(
-            max(&Value::Number(f64::INFINITY), &Value::Number(f64::NEG_INFINITY)).unwrap(),
+            max(
+                &Value::Number(f64::INFINITY),
+                &Value::Number(f64::NEG_INFINITY)
+            )
+            .unwrap(),
             Value::Number(f64::INFINITY)
         );
 
@@ -1754,11 +1814,17 @@ mod tests {
             Err(FunctionError::TypeError { .. })
         ));
         assert!(matches!(
-            max(&Value::Dictionary(std::collections::HashMap::new()), &Value::Number(1.0)),
+            max(
+                &Value::Dictionary(std::collections::HashMap::new()),
+                &Value::Number(1.0)
+            ),
             Err(FunctionError::TypeError { .. })
         ));
         assert!(matches!(
-            max(&Value::Number(1.0), &Value::Dictionary(std::collections::HashMap::new())),
+            max(
+                &Value::Number(1.0),
+                &Value::Dictionary(std::collections::HashMap::new())
+            ),
             Err(FunctionError::TypeError { .. })
         ));
         assert!(matches!(
@@ -1871,7 +1937,11 @@ mod tests {
             Value::Number(f64::NEG_INFINITY)
         );
         assert_eq!(
-            min(&Value::Number(f64::INFINITY), &Value::Number(f64::NEG_INFINITY)).unwrap(),
+            min(
+                &Value::Number(f64::INFINITY),
+                &Value::Number(f64::NEG_INFINITY)
+            )
+            .unwrap(),
             Value::Number(f64::NEG_INFINITY)
         );
 
@@ -1928,11 +1998,17 @@ mod tests {
             Err(FunctionError::TypeError { .. })
         ));
         assert!(matches!(
-            min(&Value::Dictionary(std::collections::HashMap::new()), &Value::Number(1.0)),
+            min(
+                &Value::Dictionary(std::collections::HashMap::new()),
+                &Value::Number(1.0)
+            ),
             Err(FunctionError::TypeError { .. })
         ));
         assert!(matches!(
-            min(&Value::Number(1.0), &Value::Dictionary(std::collections::HashMap::new())),
+            min(
+                &Value::Number(1.0),
+                &Value::Dictionary(std::collections::HashMap::new())
+            ),
             Err(FunctionError::TypeError { .. })
         ));
         assert!(matches!(
@@ -2537,7 +2613,7 @@ mod tests {
         // Test with negative PV (investment scenario)
         let result = rate(
             &Value::Number(5.0),
-            &Value::Number(1900.0), // positive cash flows
+            &Value::Number(1900.0),   // positive cash flows
             &Value::Number(-10000.0), // negative PV (investment)
         )
         .unwrap();
@@ -2571,7 +2647,11 @@ mod tests {
         )
         .unwrap();
         if let Value::Number(r) = result {
-            assert!(r > 0.0 && r < 0.01, "Rate out of expected range for mortgage: {}", r);
+            assert!(
+                r > 0.0 && r < 0.01,
+                "Rate out of expected range for mortgage: {}",
+                r
+            );
         }
     }
 
@@ -2638,7 +2718,11 @@ mod tests {
         match result {
             Ok(Value::Number(r)) => assert!(r > 0.0, "Rate should be positive: {}", r),
             Err(FunctionError::ArgumentError { message }) => {
-                assert!(message.contains("converge") || message.contains("iterations"), "Should be convergence or iteration error: {}", message);
+                assert!(
+                    message.contains("converge") || message.contains("iterations"),
+                    "Should be convergence or iteration error: {}",
+                    message
+                );
             }
             _ => panic!("Unexpected error type"),
         }
@@ -2752,10 +2836,7 @@ mod tests {
 
     #[test]
     fn test_npv_negative_cash_flows() {
-        let cash_flows = Value::Array(vec![
-            Value::Number(-2000.0),
-            Value::Number(-3000.0),
-        ]);
+        let cash_flows = Value::Array(vec![Value::Number(-2000.0), Value::Number(-3000.0)]);
         let result = npv(&Value::Number(0.1), &cash_flows).unwrap();
         if let Value::Number(npv) = result {
             assert!(
@@ -2878,10 +2959,7 @@ mod tests {
     #[test]
     fn test_irr_negative_irr() {
         // Cash flows that should give negative IRR
-        let cash_flows = Value::Array(vec![
-            Value::Number(1000.0),
-            Value::Number(-800.0),
-        ]);
+        let cash_flows = Value::Array(vec![Value::Number(1000.0), Value::Number(-800.0)]);
         let result = irr(&cash_flows).unwrap();
         if let Value::Number(irr_rate) = result {
             assert!(
@@ -2961,10 +3039,7 @@ mod tests {
 
     #[test]
     fn test_irr_with_nan() {
-        let cash_flows = Value::Array(vec![
-            Value::Number(f64::NAN),
-            Value::Number(3000.0),
-        ]);
+        let cash_flows = Value::Array(vec![Value::Number(f64::NAN), Value::Number(3000.0)]);
         let result = irr(&cash_flows);
         // Should either error or return NaN, but since we convert to f64, it will proceed
         // Actually, since we collect into Vec<f64>, NaN will be there, and NPV will be NaN
@@ -3106,7 +3181,10 @@ mod tests {
         let result = mirr(&cash_flows, &Value::Number(0.1), &Value::Number(0.12));
         assert!(matches!(result, Err(FunctionError::ArgumentError { .. })));
         if let Err(FunctionError::ArgumentError { message }) = result {
-            assert_eq!(message, "cash flows must contain both positive and negative values");
+            assert_eq!(
+                message,
+                "cash flows must contain both positive and negative values"
+            );
         }
     }
 
@@ -3121,7 +3199,10 @@ mod tests {
         let result = mirr(&cash_flows, &Value::Number(0.1), &Value::Number(0.12));
         assert!(matches!(result, Err(FunctionError::ArgumentError { .. })));
         if let Err(FunctionError::ArgumentError { message }) = result {
-            assert_eq!(message, "cash flows must contain both positive and negative values");
+            assert_eq!(
+                message,
+                "cash flows must contain both positive and negative values"
+            );
         }
     }
 
@@ -3146,10 +3227,7 @@ mod tests {
 
     #[test]
     fn test_mirr_single_negative_single_positive() {
-        let cash_flows = Value::Array(vec![
-            Value::Number(-1000.0),
-            Value::Number(1200.0),
-        ]);
+        let cash_flows = Value::Array(vec![Value::Number(-1000.0), Value::Number(1200.0)]);
         let result = mirr(&cash_flows, &Value::Number(0.1), &Value::Number(0.12)).unwrap();
         if let Value::Number(mirr_rate) = result {
             // MIRR = (1200 / 1000)^(1/1) - 1 = 1.2 - 1 = 0.2
@@ -3188,11 +3266,12 @@ mod tests {
 
     #[test]
     fn test_mirr_finance_rate_not_number() {
-        let cash_flows = Value::Array(vec![
-            Value::Number(-1000.0),
-            Value::Number(1200.0),
-        ]);
-        let result = mirr(&cash_flows, &Value::String("0.1".to_string()), &Value::Number(0.12));
+        let cash_flows = Value::Array(vec![Value::Number(-1000.0), Value::Number(1200.0)]);
+        let result = mirr(
+            &cash_flows,
+            &Value::String("0.1".to_string()),
+            &Value::Number(0.12),
+        );
         assert!(matches!(result, Err(FunctionError::TypeError { .. })));
         if let Err(FunctionError::TypeError { expected, got }) = result {
             assert_eq!(expected, "Number");
@@ -3202,11 +3281,12 @@ mod tests {
 
     #[test]
     fn test_mirr_reinvest_rate_not_number() {
-        let cash_flows = Value::Array(vec![
-            Value::Number(-1000.0),
-            Value::Number(1200.0),
-        ]);
-        let result = mirr(&cash_flows, &Value::Number(0.1), &Value::String("0.12".to_string()));
+        let cash_flows = Value::Array(vec![Value::Number(-1000.0), Value::Number(1200.0)]);
+        let result = mirr(
+            &cash_flows,
+            &Value::Number(0.1),
+            &Value::String("0.12".to_string()),
+        );
         assert!(matches!(result, Err(FunctionError::TypeError { .. })));
         if let Err(FunctionError::TypeError { expected, got }) = result {
             assert_eq!(expected, "Number");
@@ -3216,7 +3296,11 @@ mod tests {
 
     #[test]
     fn test_mirr_values_not_array() {
-        let result = mirr(&Value::Number(1000.0), &Value::Number(0.1), &Value::Number(0.12));
+        let result = mirr(
+            &Value::Number(1000.0),
+            &Value::Number(0.1),
+            &Value::Number(0.12),
+        );
         assert!(matches!(result, Err(FunctionError::TypeError { .. })));
         if let Err(FunctionError::TypeError { expected, got }) = result {
             assert_eq!(expected, "Array");
@@ -3235,7 +3319,10 @@ mod tests {
         ]);
         let result = mirr(&cash_flows, &Value::Number(0.1), &Value::Number(0.12)).unwrap();
         if let Value::Number(mirr_rate) = result {
-            assert!(mirr_rate.is_finite(), "MIRR should be finite for large numbers");
+            assert!(
+                mirr_rate.is_finite(),
+                "MIRR should be finite for large numbers"
+            );
         }
 
         // Very small numbers
@@ -3246,7 +3333,10 @@ mod tests {
         ]);
         let result = mirr(&cash_flows, &Value::Number(0.1), &Value::Number(0.12)).unwrap();
         if let Value::Number(mirr_rate) = result {
-            assert!(mirr_rate.is_finite(), "MIRR should be finite for small numbers");
+            assert!(
+                mirr_rate.is_finite(),
+                "MIRR should be finite for small numbers"
+            );
         }
     }
 
@@ -3260,7 +3350,10 @@ mod tests {
         let result = mirr(&cash_flows, &Value::Number(0.1), &Value::Number(0.12)).unwrap();
         if let Value::Number(mirr_rate) = result {
             // With negative infinity as initial investment, MIRR should be defined
-            assert!(mirr_rate.is_finite(), "MIRR with negative infinity should be finite");
+            assert!(
+                mirr_rate.is_finite(),
+                "MIRR with negative infinity should be finite"
+            );
         }
 
         // Test with NaN in reinvest rate (should propagate NaN)
@@ -3272,7 +3365,10 @@ mod tests {
         ]);
         let result = mirr(&cash_flows, &Value::Number(0.1), &Value::Number(f64::NAN)).unwrap();
         if let Value::Number(mirr_rate) = result {
-            assert!(mirr_rate.is_nan(), "MIRR with NaN reinvest rate should be NaN");
+            assert!(
+                mirr_rate.is_nan(),
+                "MIRR with NaN reinvest rate should be NaN"
+            );
         }
 
         // Test with NaN in finance rate for non-zero periods
@@ -3283,7 +3379,10 @@ mod tests {
         ]);
         let result = mirr(&cash_flows, &Value::Number(f64::NAN), &Value::Number(0.12)).unwrap();
         if let Value::Number(mirr_rate) = result {
-            assert!(mirr_rate.is_nan(), "MIRR with NaN finance rate and multiple periods should be NaN");
+            assert!(
+                mirr_rate.is_nan(),
+                "MIRR with NaN finance rate and multiple periods should be NaN"
+            );
         }
     }
 
@@ -3590,10 +3689,10 @@ mod tests {
         )
         .unwrap();
         assert_eq!(result, Value::Number(3840.0)); // 24000 * 0.2 * 0.8? Wait, let's calculate properly
-        // Year 1: 30000 * 0.2 = 6000, book = 24000
-        // Year 2: 24000 * 0.2 = 4800, book = 19200
-        // Year 3: 19200 * 0.2 = 3840, book = 15360
-        // Yes
+                                                   // Year 1: 30000 * 0.2 = 6000, book = 24000
+                                                   // Year 2: 24000 * 0.2 = 4800, book = 19200
+                                                   // Year 3: 19200 * 0.2 = 3840, book = 15360
+                                                   // Yes
     }
 
     #[test]
@@ -3665,10 +3764,6 @@ mod tests {
         // Year 8: capped to 0
     }
 
-
-
-
-
     #[test]
     fn test_ddb_period_9() {
         let result = ddb(
@@ -3680,8 +3775,6 @@ mod tests {
         .unwrap();
         assert_eq!(result, Value::Number(0.0)); // Capped to not go below salvage
     }
-
-
 
     #[test]
     fn test_ddb_zero_life() {
@@ -4763,9 +4856,12 @@ mod tests {
 
         for (nominal_rate, npery) in test_cases {
             let result = effect(nominal_rate, npery);
-            assert!(matches!(result, Err(FunctionError::TypeError { .. })),
+            assert!(
+                matches!(result, Err(FunctionError::TypeError { .. })),
                 "Expected TypeError for nominal_rate={:?}, npery={:?}",
-                nominal_rate, npery);
+                nominal_rate,
+                npery
+            );
         }
     }
 
@@ -4810,7 +4906,11 @@ mod tests {
     fn test_effect_very_large_nominal_rate() {
         let result = effect(&Value::Number(1e10), &Value::Number(4.0)).unwrap();
         if let Value::Number(eff) = result {
-            assert!(eff.is_infinite() || eff > 1e30, "Expected very large or infinite result, got {}", eff);
+            assert!(
+                eff.is_infinite() || eff > 1e30,
+                "Expected very large or infinite result, got {}",
+                eff
+            );
         }
     }
 
@@ -4839,9 +4939,21 @@ mod tests {
         let effective_monthly = effect(&Value::Number(nominal_rate), &Value::Number(12.0)).unwrap();
         let effective_daily = effect(&Value::Number(nominal_rate), &Value::Number(365.0)).unwrap();
 
-        if let (Value::Number(ann), Value::Number(mon), Value::Number(dai)) = (effective_annual, effective_monthly, effective_daily) {
-            assert!(ann < mon, "Monthly compounding should give higher effective rate than annual: {} vs {}", ann, mon);
-            assert!(mon < dai, "Daily compounding should give higher effective rate than monthly: {} vs {}", mon, dai);
+        if let (Value::Number(ann), Value::Number(mon), Value::Number(dai)) =
+            (effective_annual, effective_monthly, effective_daily)
+        {
+            assert!(
+                ann < mon,
+                "Monthly compounding should give higher effective rate than annual: {} vs {}",
+                ann,
+                mon
+            );
+            assert!(
+                mon < dai,
+                "Daily compounding should give higher effective rate than monthly: {} vs {}",
+                mon,
+                dai
+            );
         }
     }
 
@@ -4849,11 +4961,7 @@ mod tests {
     fn test_nominal_monthly_compounding() {
         let result = nominal(&Value::Number(0.06168), &Value::Number(12.0)).unwrap();
         if let Value::Number(nom) = result {
-            assert!(
-                (nom - 0.06).abs() < 0.001,
-                "Expected ~0.06, got {}",
-                nom
-            );
+            assert!((nom - 0.06).abs() < 0.001, "Expected ~0.06, got {}", nom);
         }
     }
 
@@ -4861,11 +4969,7 @@ mod tests {
     fn test_nominal_daily_compounding() {
         let result = nominal(&Value::Number(0.0618365), &Value::Number(365.0)).unwrap();
         if let Value::Number(nom) = result {
-            assert!(
-                (nom - 0.06).abs() < 0.001,
-                "Expected ~0.06, got {}",
-                nom
-            );
+            assert!((nom - 0.06).abs() < 0.001, "Expected ~0.06, got {}", nom);
         }
     }
 
@@ -5050,7 +5154,11 @@ mod tests {
     fn test_nominal_very_small_effective_rate() {
         let result = nominal(&Value::Number(1e-10), &Value::Number(12.0)).unwrap();
         if let Value::Number(nom) = result {
-            assert!(nom > 0.0 && nom < 1e-9, "Nominal rate should be very small positive: {}", nom);
+            assert!(
+                nom > 0.0 && nom < 1e-9,
+                "Nominal rate should be very small positive: {}",
+                nom
+            );
         }
     }
 
@@ -5081,11 +5189,18 @@ mod tests {
     #[test]
     fn test_nominal_compounding_frequency_relationship() {
         let effective_rate = 0.05;
-        let nominal_quarterly = nominal(&Value::Number(effective_rate), &Value::Number(4.0)).unwrap();
-        let nominal_monthly = nominal(&Value::Number(effective_rate), &Value::Number(12.0)).unwrap();
+        let nominal_quarterly =
+            nominal(&Value::Number(effective_rate), &Value::Number(4.0)).unwrap();
+        let nominal_monthly =
+            nominal(&Value::Number(effective_rate), &Value::Number(12.0)).unwrap();
 
         if let (Value::Number(q), Value::Number(m)) = (nominal_quarterly, nominal_monthly) {
-            assert!(m < q, "Monthly nominal should be lower than quarterly for same effective rate: {} vs {}", m, q);
+            assert!(
+                m < q,
+                "Monthly nominal should be lower than quarterly for same effective rate: {} vs {}",
+                m,
+                q
+            );
         }
     }
 
