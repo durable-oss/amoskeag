@@ -426,13 +426,12 @@ fn transpile_expr(expr: &Expr, indent: &str, depth: usize) -> Result<String, Tra
 
 /// Check if a string is a valid JavaScript identifier
 fn is_valid_js_identifier(s: &str) -> bool {
-    if s.is_empty() {
-        return false;
-    }
-
     // Check if first character is valid
     let mut chars = s.chars();
-    let first = chars.next().unwrap();
+    let Some(first) = chars.next() else {
+        return false;
+    };
+
     if !first.is_alphabetic() && first != '_' && first != '$' {
         return false;
     }
