@@ -285,7 +285,7 @@ fn validate_function_call(name: &str, arg_count: usize) -> Result<(), CompileErr
         ("is_nil", (1, 1)),
         ("is_array", (1, 1)),
         ("is_dictionary", (1, 1)),
-        ("coalesce", (2, 100)), // Variadic
+        ("coalesce", (2, 2)),
         ("default", (2, 2)),
         // Financial functions - Time Value of Money
         ("pmt", (3, 3)),
@@ -309,6 +309,9 @@ fn validate_function_call(name: &str, arg_count: usize) -> Result<(), CompileErr
         // Financial functions - Interest Rate Conversion
         ("effect", (2, 2)),
         ("nominal", (2, 2)),
+        // Date functions
+        ("date_now", (0, 0)),
+        ("date_format", (2, 2)),
     ]
     .iter()
     .cloned()
@@ -393,6 +396,11 @@ pub fn eval_expr(expr: &Expr, context: &Context) -> Result<Value, EvalError> {
 
             // Look up the root variable
             let mut current = context.lookup(&path[0]);
+
+            // If the root variable is not found and it's a simple variable (no dots), error
+            if matches!(current, Value::Nil) && path.len() == 1 {
+                return Err(EvalError::VariableNotFound(path[0].clone()));
+            }
 
             // Navigate the path with safe navigation semantics
             for key in &path[1..] {
@@ -611,6 +619,19 @@ fn call_function(name: &str, args: &[Value]) -> Result<Value, EvalError> {
         // Financial functions - Interest Rate Conversion
         "effect" => effect(&args[0], &args[1]).map_err(EvalError::from),
         "nominal" => nominal(&args[0], &args[1]).map_err(EvalError::from),
+
+        // Date functions
+        "date_now" => {
+            if args.is_empty() {
+                date_now().map_err(EvalError::from)
+            } else {
+                Err(EvalError::TypeError {
+                    expected: "0 arguments".to_string(),
+                    got: format!("{} arguments", args.len()),
+                })
+            }
+        }
+        "date_format" => date_format(&args[0], &args[1]).map_err(EvalError::from),
 
         _ => Err(EvalError::TypeError {
             expected: "known function".to_string(),
@@ -1028,5 +1049,208 @@ mod tests {
         } else {
             panic!("Expected array");
         }
+    }
+
+    #[test]
+    fn test_string_functions() {
+        let test_cases = vec![
+            ("upcase('hello')", Value::String("HELLO".to_string())),
+            ("downcase('HELLO')", Value::String("hello".to_string())),
+            ("capitalize('hello world')", Value::String("Hello world".to_string())),
+            ("strip('  hello  ')", Value::String("hello".to_string())),
+            ("split('a,b,c', ',')", Value::Array(vec![
+                Value::String("a".to_string()),
+                Value::String("b".to_string()),
+                Value::String("c".to_string()),
+            ])),
+            ("join(['a', 'b', 'c'], ',')", Value::String("a,b,c".to_string())),
+            ("truncate('hello world', 5)", Value::String("hello".to_string())),
+            ("replace('hello world', 'world', 'rust')", Value::String("hello rust".to_string())),
+        ];
+
+        for (source, expected) in test_cases {
+            let program = compile(source, &[]).unwrap();
+            let data = HashMap::new();
+            let result = evaluate(&program, &data).unwrap();
+            assert_eq!(result, expected, "Failed for: {}", source);
+        }
+    }
+
+    #[test]
+    fn test_numeric_functions() {
+        let test_cases = vec![
+            ("abs(-5)", Value::Number(5.0)),
+            ("abs(5)", Value::Number(5.0)),
+            ("ceil(3.2)", Value::Number(4.0)),
+            ("floor(3.8)", Value::Number(3.0)),
+            ("round(3.5)", Value::Number(4.0)),
+            ("round(3.14159, 2)", Value::Number(3.14)),
+            ("plus(2, 3)", Value::Number(5.0)),
+            ("minus(5, 3)", Value::Number(2.0)),
+            ("times(4, 5)", Value::Number(20.0)),
+            ("divided_by(10, 2)", Value::Number(5.0)),
+            ("modulo(10, 3)", Value::Number(1.0)),
+            ("max(5, 10)", Value::Number(10.0)),
+            ("min(5, 10)", Value::Number(5.0)),
+        ];
+
+        for (source, expected) in test_cases {
+            let program = compile(source, &[]).unwrap();
+            let data = HashMap::new();
+            let result = evaluate(&program, &data).unwrap();
+            assert_eq!(result, expected, "Failed for: {}", source);
+        }
+    }
+
+    #[test]
+    fn test_collection_functions() {
+        let test_cases = vec![
+            ("size([1, 2, 3])", Value::Number(3.0)),
+            ("size({'a': 1, 'b': 2})", Value::Number(2.0)),
+            ("first([1, 2, 3])", Value::Number(1.0)),
+            ("last([1, 2, 3])", Value::Number(3.0)),
+            ("contains([1, 2, 3], 2)", Value::Boolean(true)),
+            ("contains([1, 2, 3], 4)", Value::Boolean(false)),
+            ("sum([1, 2, 3, 4])", Value::Number(10.0)),
+            ("avg([1, 2, 3, 4])", Value::Number(2.5)),
+            ("at([10, 20, 30], 1)", Value::Number(20.0)),
+            ("keys({'a': 1, 'b': 2})", Value::Array(vec![
+                Value::String("a".to_string()),
+                Value::String("b".to_string()),
+            ])),
+        ];
+
+        for (source, expected) in test_cases {
+            let program = compile(source, &[]).unwrap();
+            let data = HashMap::new();
+            let result = evaluate(&program, &data).unwrap();
+            assert_eq!(result, expected, "Failed for: {}", source);
+        }
+    }
+
+    #[test]
+    fn test_logic_functions() {
+        let test_cases = vec![
+            ("choose(1, ['yes', 'no'])", Value::String("yes".to_string())),
+            ("choose(2, ['yes', 'no'])", Value::String("no".to_string())),
+            ("if_then_else(true, 1, 2)", Value::Number(1.0)),
+            ("if_then_else(false, 1, 2)", Value::Number(2.0)),
+            ("is_number(42)", Value::Boolean(true)),
+            ("is_number('42')", Value::Boolean(false)),
+            ("is_string('hello')", Value::Boolean(true)),
+            ("is_string(42)", Value::Boolean(false)),
+            ("is_boolean(true)", Value::Boolean(true)),
+            ("is_boolean(42)", Value::Boolean(false)),
+            ("is_nil(nil)", Value::Boolean(true)),
+            ("is_nil(42)", Value::Boolean(false)),
+            ("is_array([1, 2])", Value::Boolean(true)),
+            ("is_array(42)", Value::Boolean(false)),
+            ("is_dictionary({'a': 1})", Value::Boolean(true)),
+            ("is_dictionary(42)", Value::Boolean(false)),
+            ("coalesce(nil, 'default')", Value::String("default".to_string())),
+            ("coalesce('value', 'default')", Value::String("value".to_string())),
+            ("default(nil, 'default')", Value::String("default".to_string())),
+            ("default('value', 'default')", Value::String("value".to_string())),
+        ];
+
+        for (source, expected) in test_cases {
+            let program = compile(source, &[]).unwrap();
+            let data = HashMap::new();
+            let result = evaluate(&program, &data).unwrap();
+            assert_eq!(result, expected, "Failed for: {}", source);
+        }
+    }
+
+    #[test]
+    fn test_financial_functions() {
+        // Test PMT function: payment for loan
+        // PMT(rate, nper, pv) - rate=5%, nper=12, pv=1000 should be approximately -85.61
+        let source = "pmt(0.05/12, 12, 1000)";
+        let program = compile(source, &[]).unwrap();
+        let data = HashMap::new();
+        let result = evaluate(&program, &data).unwrap();
+        if let Value::Number(payment) = result {
+            // Allow small floating point differences
+            assert!((payment + 85.61).abs() < 0.01, "PMT result: {}", payment);
+        } else {
+            panic!("Expected number for PMT");
+        }
+
+        // Test PV function: present value
+        let source = "pv(0.05/12, 12, -85.61)";
+        let program = compile(source, &[]).unwrap();
+        let result = evaluate(&program, &data).unwrap();
+        if let Value::Number(pv) = result {
+            assert!((pv - 1000.0).abs() < 1.0, "PV result: {}", pv);
+        } else {
+            panic!("Expected number for PV");
+        }
+    }
+
+    #[test]
+    fn test_date_functions() {
+        // Test date_now returns a string
+        let source = "date_now()";
+        let program = compile(source, &[]).unwrap();
+        let data = HashMap::new();
+        let result = evaluate(&program, &data).unwrap();
+        assert!(matches!(result, Value::String(_)));
+
+        // Test date_format
+        let source = r#"date_format("2023-01-15", "formatted: %Y-%m-%d")"#;
+        let program = compile(source, &[]).unwrap();
+        let result = evaluate(&program, &data).unwrap();
+        assert!(matches!(result, Value::String(_)));
+    }
+
+    #[test]
+    fn test_error_cases() {
+        let data = HashMap::new();
+
+        // Type errors in functions
+        let error_cases = vec![
+            "abs('not a number')",
+            "upcase(123)",
+            "first('not array')",
+            "last('not array')",
+            "at('not array', 0)",
+            "contains('not array', 1)",
+            "choose('not number', [1, 2])",
+            "choose(1, 'not array')",
+        ];
+
+        for source in error_cases {
+            let program = compile(source, &[]).unwrap();
+            let result = evaluate(&program, &data);
+            assert!(result.is_err(), "Expected error for: {}", source);
+        }
+    }
+
+    #[test]
+    fn test_edge_cases() {
+        // Very large numbers
+        let source = "999999999999999.999999999999";
+        let program = compile(source, &[]).unwrap();
+        let data = HashMap::new();
+        let result = evaluate(&program, &data).unwrap();
+        assert!(matches!(result, Value::Number(_)));
+
+        // Empty strings
+        let source = r#"upcase("")"#;
+        let program = compile(source, &[]).unwrap();
+        let result = evaluate(&program, &data).unwrap();
+        assert_eq!(result, Value::String("".to_string()));
+
+        // Nested function calls
+        let source = "upcase(capitalize('hello world'))";
+        let program = compile(source, &[]).unwrap();
+        let result = evaluate(&program, &data).unwrap();
+        assert_eq!(result, Value::String("HELLO WORLD".to_string()));
+
+        // Complex pipe chains
+        let source = r#""  hello world  " | strip | capitalize | truncate(5)"#;
+        let program = compile(source, &[]).unwrap();
+        let result = evaluate(&program, &data).unwrap();
+        assert_eq!(result, Value::String("Hello".to_string()));
     }
 }

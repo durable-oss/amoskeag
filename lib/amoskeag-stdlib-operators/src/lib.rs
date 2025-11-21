@@ -18,6 +18,38 @@ pub enum Value {
     Symbol(String),
 }
 
+impl std::fmt::Display for Value {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Value::Number(n) => write!(f, "{}", n),
+            Value::String(s) => write!(f, "{}", s),
+            Value::Boolean(b) => write!(f, "{}", b),
+            Value::Nil => write!(f, "nil"),
+            Value::Array(arr) => {
+                write!(f, "[")?;
+                for (i, v) in arr.iter().enumerate() {
+                    if i > 0 {
+                        write!(f, ", ")?;
+                    }
+                    write!(f, "{}", v)?;
+                }
+                write!(f, "]")
+            }
+            Value::Dictionary(dict) => {
+                write!(f, "{{")?;
+                for (i, (k, v)) in dict.iter().enumerate() {
+                    if i > 0 {
+                        write!(f, ", ")?;
+                    }
+                    write!(f, "\"{}\": {}", k, v)?;
+                }
+                write!(f, "}}")
+            }
+            Value::Symbol(s) => write!(f, ":{}", s),
+        }
+    }
+}
+
 /// Error types for operator operations
 #[derive(Debug, Clone, PartialEq)]
 pub enum OperatorError {
@@ -66,6 +98,7 @@ pub fn add(left: &Value, right: &Value) -> Result<Value, OperatorError> {
     match (left, right) {
         (Value::Number(l), Value::Number(r)) => Ok(Value::Number(l + r)),
         (Value::String(l), Value::String(r)) => Ok(Value::String(format!("{}{}", l, r))),
+        (Value::String(l), _) => Ok(Value::String(format!("{}{}", l, right))),
         _ => Err(OperatorError::InvalidOperation {
             op: "+".to_string(),
             left: left.type_name().to_string(),

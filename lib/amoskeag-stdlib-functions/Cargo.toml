@@ -8,3 +8,4 @@ repository.workspace = true
 
 [dependencies]
 amoskeag-stdlib-operators = { path = "../amoskeag-stdlib-operators" }
+inventory = "0.3"

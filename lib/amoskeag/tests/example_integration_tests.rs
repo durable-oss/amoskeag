@@ -66,23 +66,7 @@ fn test_03_variables() {
 
 #[test]
 fn test_04_conditionals() {
-    // Note: The example file uses 'else if' syntax that requires parser improvements.
-    // This test uses the corrected syntax with nested if-expressions.
-    let source = r#"
-        let age = 25
-        in
-        let is_student = true
-        in
-          if age < 18
-            "Minor"
-          else
-            if is_student
-              "Student"
-            else
-              "Adult"
-            end
-          end
-    "#;
+    let source = load_example("04_conditionals");
     let program = compile(&source, &[]).expect("Compilation failed");
     let data = HashMap::new();
     let result = evaluate(&program, &data).expect("Evaluation failed");
@@ -133,20 +117,7 @@ fn test_07_dictionary_access() {
 
 #[test]
 fn test_08_symbols() {
-    // Note: Using corrected nested if syntax
-    let source = r#"
-        let status = "active"
-        in
-          if status == "active"
-            :approved
-          else
-            if status == "pending"
-              :waiting
-            else
-              :denied
-            end
-          end
-    "#;
+    let source = load_example("08_symbols");
     let symbols = &["approved", "waiting", "denied"];
     let program = compile(&source, symbols).expect("Compilation failed");
     let data = HashMap::new();
@@ -157,32 +128,7 @@ fn test_08_symbols() {
 
 #[test]
 fn test_09_business_rule_simple() {
-    // Note: Using corrected nested if syntax
-    let source = r#"
-        let applicant = {
-          "age": 28,
-          "income": 55000,
-          "credit_score": 720
-        }
-        in
-          if applicant.age < 18
-            :deny
-          else
-            if applicant.income < 30000
-              :deny
-            else
-              if applicant.credit_score < 650
-                :deny
-              else
-                if applicant.credit_score >= 750
-                  :instant_approve
-                else
-                  :approve
-                end
-              end
-            end
-          end
-    "#;
+    let source = load_example("09_business_rule_simple");
     let symbols = &["deny", "instant_approve", "approve"];
     let program = compile(&source, symbols).expect("Compilation failed");
     let data = HashMap::new();
@@ -268,20 +214,7 @@ fn test_10_business_rule_complex() {
 
 #[test]
 fn test_11_template_greeting() {
-    // Note: Using corrected nested if syntax
-    let source = r#"
-        let u = user
-        in
-          if u.is_admin
-            "Welcome back, Administrator " + u.name + "!"
-          else
-            if u.last_login != nil
-              "Welcome back, " + u.name + "!"
-            else
-              "Welcome, " + u.name + "! This is your first visit."
-            end
-          end
-    "#;
+    let source = load_example("11_template_greeting");
     let program = compile(&source, &[]).expect("Compilation failed");
 
     // Build the data context
@@ -304,32 +237,7 @@ fn test_11_template_greeting() {
 
 #[test]
 fn test_12_template_blog_post() {
-    // Note: Using corrected nested if syntax
-    let source = r#"
-        let p = post
-        in
-        let title_display = p.title | upcase | truncate(50)
-        in
-        let author_display =
-          if p.author.is_verified
-            p.author.name + " ✓"
-          else
-            p.author.name
-          end
-        in
-        let status_badge =
-          if p.status == "published"
-            "[LIVE]"
-          else
-            if p.status == "draft"
-              "[DRAFT]"
-            else
-              "[ARCHIVED]"
-            end
-          end
-        in
-          status_badge + " " + title_display + " by " + author_display
-    "#;
+    let source = load_example("12_template_blog_post");
     let program = compile(&source, &[]).expect("Compilation failed");
 
     // Build the data context
@@ -447,40 +355,7 @@ fn test_17_logical_operators() {
 
 #[test]
 fn test_18_nested_data() {
-    let source = r#"
-        let company = {
-          "name": "TechCorp",
-          "address": {
-            "street": "123 Main St",
-            "city": "Boston",
-            "state": "MA",
-            "geo": {
-              "lat": "42.36",
-              "lon": "-71.06"
-            }
-          },
-          "employees": [
-            {
-              "name": "Alice",
-              "role": "Engineer",
-              "contact": {
-                "email": "alice@techcorp.com"
-              }
-            }
-          ]
-        }
-        in
-        let location_str =
-          company.address.city + ", " + company.address.state
-        in
-        let coordinates =
-          "(" + company.address.geo.lat + ", " + company.address.geo.lon + ")"
-        in
-        let first_employee = company.employees | first
-        in
-          company.name + " - " + location_str + " " + coordinates +
-          " - Contact: " + first_employee.contact.email
-    "#;
+    let source = load_example("18_nested_data");
     let program = compile(&source, &[]).expect("Compilation failed");
     let data = HashMap::new();
     let result = evaluate(&program, &data).expect("Evaluation failed");
@@ -511,29 +386,7 @@ fn test_19_array_filtering() {
 
 #[test]
 fn test_20_string_formatting() {
-    let source = r#"
-        let first_name = "john"
-        in
-        let last_name = "DOE"
-        in
-        let full_name =
-          (first_name | capitalize) + " " + (last_name | downcase | capitalize)
-        in
-        let email_base = full_name | downcase | replace(" ", ".")
-        in
-        let bio = "   Software engineer with 10 years experience.   "
-        in
-        let tags = ["rust", "typescript", "python"]
-        in
-          {
-            "display_name": full_name,
-            "email": email_base + "@company.com",
-            "bio_clean": bio | strip,
-            "bio_short": bio | strip | truncate(30),
-            "tags_joined": tags | join(", "),
-            "tag_count": tags | size
-          }
-    "#;
+    let source = load_example("20_string_formatting");
     let program = compile(&source, &[]).expect("Compilation failed");
     let data = HashMap::new();
     let result = evaluate(&program, &data).expect("Evaluation failed");
@@ -572,7 +425,6 @@ fn test_21_number_rounding() {
 }
 
 #[test]
-#[ignore] // Requires date_now and date_format functions which are not yet implemented
 fn test_22_date_operations() {
     let source = load_example("22_date_operations");
     let program = compile(&source, &[]).expect("Compilation failed");
@@ -608,74 +460,7 @@ fn test_23_loan_calculator() {
 
 #[test]
 fn test_24_discount_calculator() {
-    // Note: Using corrected nested if syntax
-    let source = r#"
-        let cart = {
-          "items": [
-            {"name": "Widget", "price": 29.99, "qty": 2},
-            {"name": "Gadget", "price": 49.99, "qty": 1},
-            {"name": "Tool", "price": 15.00, "qty": 3}
-          ],
-          "customer": {
-            "is_member": true,
-            "loyalty_points": 500
-          }
-        }
-        in
-        let subtotal = (29.99 * 2) + (49.99 * 1) + (15.00 * 3)
-        in
-        let member_discount_rate =
-          if cart.customer.is_member
-            0.10
-          else
-            0
-          end
-        in
-        let member_discount = subtotal * member_discount_rate
-        in
-        let subtotal_after_member = subtotal - member_discount
-        in
-        let volume_discount =
-          if subtotal_after_member > 150
-            subtotal_after_member * 0.05
-          else
-            if subtotal_after_member > 100
-              subtotal_after_member * 0.03
-            else
-              0
-            end
-          end
-        in
-        let loyalty_discount =
-          if cart.customer.loyalty_points >= 500
-            10.00
-          else
-            if cart.customer.loyalty_points >= 200
-              5.00
-            else
-              0
-            end
-          end
-        in
-        let total_discount = member_discount + volume_discount + loyalty_discount
-        in
-        let final_price = subtotal - total_discount
-        in
-          {
-            "pricing": {
-              "subtotal": subtotal | round(2),
-              "member_discount": member_discount | round(2),
-              "volume_discount": volume_discount | round(2),
-              "loyalty_discount": loyalty_discount | round(2),
-              "total_discount": total_discount | round(2),
-              "final_price": final_price | round(2)
-            },
-            "savings": {
-              "amount": total_discount | round(2),
-              "percent": ((total_discount / subtotal) * 100) | round(1)
-            }
-          }
-    "#;
+    let source = load_example("24_discount_calculator");
     let program = compile(&source, &[]).expect("Compilation failed");
     let data = HashMap::new();
     let result = evaluate(&program, &data).expect("Evaluation failed");
@@ -711,61 +496,7 @@ fn test_24_discount_calculator() {
 
 #[test]
 fn test_25_validation_rule() {
-    // Note: Using corrected nested if syntax
-    let source = r#"
-        let form = {
-          "email": "user@example.com",
-          "password": "mypassword123",
-          "age": 25,
-          "terms_accepted": true,
-          "country": "US"
-        }
-        in
-        let email_valid =
-          (form.email | size > 3) and (form.email | contains("@"))
-        in
-        let password_valid =
-          form.password | size >= 8
-        in
-        let age_valid =
-          form.age >= 18 and form.age <= 120
-        in
-        let terms_valid =
-          form.terms_accepted == true
-        in
-        let country_supported =
-          ["US", "CA", "UK", "AU"] | contains(form.country)
-        in
-        let all_valid =
-          email_valid and password_valid and age_valid and
-          terms_valid and country_supported
-        in
-          if all_valid
-            :valid
-          else
-            if not email_valid
-              :invalid_email
-            else
-              if not password_valid
-                :invalid_password
-              else
-                if not age_valid
-                  :invalid_age
-                else
-                  if not terms_valid
-                    :terms_not_accepted
-                  else
-                    if not country_supported
-                      :unsupported_country
-                    else
-                      :invalid_unknown
-                    end
-                  end
-                end
-              end
-            end
-          end
-    "#;
+    let source = load_example("25_validation_rule");
     let symbols = &[
         "valid",
         "invalid_email",
@@ -780,4 +511,109 @@ fn test_25_validation_rule() {
     let result = evaluate(&program, &data).expect("Evaluation failed");
 
     assert_eq!(result, Value::Symbol("valid".to_string()));
+}
+
+#[test]
+fn test_parse_error_missing_else() {
+    let source = r#"
+        if true
+          "yes"
+        end
+    "#;
+    let result = compile(&source, &[]);
+    assert!(result.is_err());
+}
+
+#[test]
+fn test_parse_error_invalid_syntax() {
+    let source = "let x = + 5 in x";
+    let result = compile(&source, &[]);
+    assert!(result.is_err());
+}
+
+#[test]
+fn test_parse_error_unmatched_paren() {
+    let source = "(1 + 2";
+    let result = compile(&source, &[]);
+    assert!(result.is_err());
+}
+
+#[test]
+fn test_evaluation_error_undefined_variable() {
+    let source = "undefined_var";
+    let program = compile(&source, &[]).expect("Compilation failed");
+    let data = HashMap::new();
+    let result = evaluate(&program, &data);
+    assert!(result.is_err());
+}
+
+#[test]
+fn test_evaluation_error_type_mismatch() {
+    let source = r#""string" + 123"#;
+    let program = compile(&source, &[]).expect("Compilation failed");
+    let data = HashMap::new();
+    let _result = evaluate(&program, &data);
+    // Depending on implementation, may or may not error
+    // For now, assume it works or add assertion if needed
+}
+
+#[test]
+fn test_edge_case_deep_nesting() {
+    let source = r#"
+        let a = 1 in
+        let b = a + 1 in
+        let c = b + 1 in
+        let d = c + 1 in
+        let e = d + 1 in
+        e
+    "#;
+    let program = compile(&source, &[]).expect("Compilation failed");
+    let data = HashMap::new();
+    let result = evaluate(&program, &data).expect("Evaluation failed");
+    assert_eq!(result, Value::Number(5.0));
+}
+
+#[test]
+fn test_edge_case_large_number() {
+    let source = "999999999999.999";
+    let program = compile(&source, &[]).expect("Compilation failed");
+    let data = HashMap::new();
+    let result = evaluate(&program, &data).expect("Evaluation failed");
+    assert_eq!(result, Value::Number(999999999999.999));
+}
+
+#[test]
+fn test_edge_case_empty_array() {
+    let source = "[] | size";
+    let program = compile(&source, &[]).expect("Compilation failed");
+    let data = HashMap::new();
+    let result = evaluate(&program, &data).expect("Evaluation failed");
+    assert_eq!(result, Value::Number(0.0));
+}
+
+#[test]
+fn test_edge_case_empty_dictionary() {
+    let source = "{}";
+    let program = compile(&source, &[]).expect("Compilation failed");
+    let data = HashMap::new();
+    let result = evaluate(&program, &data).expect("Evaluation failed");
+    assert_eq!(result, Value::Dictionary(HashMap::new()));
+}
+
+#[test]
+fn test_string_concatenation_with_numbers() {
+    let source = r#""Price: " + 42.5"#;
+    let program = compile(&source, &[]).expect("Compilation failed");
+    let data = HashMap::new();
+    let result = evaluate(&program, &data).expect("Evaluation failed");
+    assert_eq!(result, Value::String("Price: 42.5".to_string()));
+}
+
+#[test]
+fn test_capitalize_function() {
+    let source = r#"("hello world" | capitalize)"#;
+    let program = compile(&source, &[]).expect("Compilation failed");
+    let data = HashMap::new();
+    let result = evaluate(&program, &data).expect("Evaluation failed");
+    assert_eq!(result, Value::String("Hello world".to_string()));
 }

@@ -24,3 +24,6 @@ serde_json = "1.0"
 default = []
 # Enterprise feature: JIT compilation using LLVM (not available in open-source version)
 jit = []
+
+[dev-dependencies]
+tempfile = "3.23.0"

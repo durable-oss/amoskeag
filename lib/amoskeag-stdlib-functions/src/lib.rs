@@ -6,10 +6,14 @@
 // Re-export the Value type from operators
 pub use amoskeag_stdlib_operators::{OperatorError, Value};
 
+// Re-export inventory for function registration
+pub use inventory;
+
 pub mod string;
 pub mod numeric;
 pub mod collection;
 pub mod logic;
+pub mod date;
 
 /// Error types for function operations
 #[derive(Debug, Clone, PartialEq)]
@@ -46,3 +50,4 @@ pub use string::*;
 pub use numeric::*;
 pub use collection::*;
 pub use logic::*;
+pub use date::*;

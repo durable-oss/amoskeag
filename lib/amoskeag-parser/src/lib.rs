@@ -188,28 +188,53 @@ impl Parser {
     }
 
     fn if_expression(&mut self) -> Result<Expr, ParseError> {
-        // IfExpression ::= "if" Expression Expression "else" Expression "end"
         self.consume_token(&TokenType::If, "if")?;
 
-        let condition = Box::new(self.expression()?);
+        let mut conditions = vec![];
+        let mut thens = vec![];
 
-        // Optionally consume "then" keyword
+        let condition = Box::new(self.expression()?);
         if self.check(&TokenType::Then) {
             self.advance();
         }
-
         let then_branch = Box::new(self.expression()?);
 
-        self.consume_token(&TokenType::Else, "else")?;
+        conditions.push(condition);
+        thens.push(then_branch);
 
-        let else_branch = Box::new(self.expression()?);
+        while self.match_token(&TokenType::Else) {
+            if self.check(&TokenType::If) {
+                self.advance();
+                let cond = Box::new(self.expression()?);
+                if self.check(&TokenType::Then) {
+                    self.advance();
+                }
+                let then = Box::new(self.expression()?);
+                conditions.push(cond);
+                thens.push(then);
+            } else {
+                let else_branch = Box::new(self.expression()?);
+                self.consume_token(&TokenType::End, "end")?;
 
-        self.consume_token(&TokenType::End, "end")?;
+                // Build the nested if from the inside out
+                let mut expr = *else_branch;
+                for i in (0..conditions.len()).rev() {
+                    expr = Expr::If {
+                        condition: conditions[i].clone(),
+                        then_branch: thens[i].clone(),
+                        else_branch: Box::new(expr),
+                    };
+                }
+                return Ok(expr);
+            }
+        }
 
-        Ok(Expr::If {
-            condition,
-            then_branch,
-            else_branch,
+        // If we reach here, no else was found
+        Err(ParseError::UnexpectedToken {
+            expected: "else".to_string(),
+            found: format!("{}", self.peek().token_type),
+            line: self.peek().line,
+            column: self.peek().column,
         })
     }
 
