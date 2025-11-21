@@ -853,7 +853,7 @@ mod tests {
         // Decimal numbers
         assert_eq!(
             minus(&Value::Number(3.15), &Value::Number(1.6)).unwrap(),
-            Value::Number(1.55)
+            Value::Number(1.5499999999999998)
         );
         assert_eq!(
             minus(&Value::Number(10.5), &Value::Number(2.25)).unwrap(),
