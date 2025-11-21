@@ -23,7 +23,8 @@ serde_json = "1.0"
 [features]
 default = []
 # Enterprise feature: JIT compilation using LLVM (not available in open-source version)
-# jit = ["amoskeag-jit"]
+# When enabled with enterprise dependencies: jit = ["amoskeag-jit"]
+jit = []
 
 [dev-dependencies]
 tempfile = "3.23.0"
