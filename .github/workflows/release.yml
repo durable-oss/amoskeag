@@ -45,14 +45,14 @@ jobs:
       - name: Build static binary
         run: cargo zigbuild --release --target ${{ matrix.target }} --package amoskeag-cli
 
-      - name: Build shared library
+      - name: Build static library
         run: cargo zigbuild --release --target ${{ matrix.target }} --package amoskeag
 
       - name: Prepare artifact
         run: |
           mkdir -p dist
           cp target/${{ matrix.target }}/release/amoskeag dist/amoskeag-${{ matrix.arch }}
-          cp target/${{ matrix.target }}/release/libamoskeag.so dist/libamoskeag-${{ matrix.arch }}.so
+          cp target/${{ matrix.target }}/release/libamoskeag.a dist/libamoskeag-${{ matrix.arch }}.a
           chmod +x dist/amoskeag-${{ matrix.arch }}
 
       - name: Upload binary artifact
@@ -65,7 +65,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: library-${{ matrix.arch }}
-          path: dist/libamoskeag-${{ matrix.arch }}.so
+          path: dist/libamoskeag-${{ matrix.arch }}.a
 
   package:
     name: Create packages
@@ -230,8 +230,8 @@ jobs:
           mkdir -p release
           cp artifacts/binary-amd64/amoskeag-amd64 release/amoskeag-linux-amd64
           cp artifacts/binary-arm64/amoskeag-arm64 release/amoskeag-linux-arm64
-          cp artifacts/library-amd64/libamoskeag-amd64.so release/libamoskeag-linux-amd64.so
-          cp artifacts/library-arm64/libamoskeag-arm64.so release/libamoskeag-linux-arm64.so
+          cp artifacts/library-amd64/libamoskeag-amd64.a release/libamoskeag-linux-amd64.a
+          cp artifacts/library-arm64/libamoskeag-arm64.a release/libamoskeag-linux-arm64.a
           cp artifacts/packages/*.deb release/
           cp artifacts/packages/*.rpm release/
           cp artifacts/packages/*.apk release/
