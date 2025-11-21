@@ -30,16 +30,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install musl tools
+      - name: Install Zig and cargo-zigbuild
         run: |
-          sudo apt-get update
-          sudo apt-get install -y musl-tools
-
-      - name: Install cross
-        run: cargo install cross --git https://github.com/cross-rs/cross
+          sudo snap install zig --classic --beta
+          cargo install cargo-zigbuild
 
       - name: Build static binary
-        run: cross build --release --target ${{ matrix.target }} --package amoskeag-cli
+        run: cargo zigbuild --release --target ${{ matrix.target }} --package amoskeag-cli
 
       - name: Prepare artifact
         run: |
