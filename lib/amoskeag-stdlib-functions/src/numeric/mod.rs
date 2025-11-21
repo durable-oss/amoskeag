@@ -213,8 +213,8 @@ mod tests {
         assert_eq!(abs(&Value::Number(0.0)).unwrap(), Value::Number(0.0));
 
         // Decimal numbers
-        assert_eq!(abs(&Value::Number(-3.14)).unwrap(), Value::Number(3.14));
-        assert_eq!(abs(&Value::Number(2.71)).unwrap(), Value::Number(2.71));
+        assert_eq!(abs(&Value::Number(-3.15)).unwrap(), Value::Number(3.15));
+        assert_eq!(abs(&Value::Number(2.72)).unwrap(), Value::Number(2.72));
 
         // Very large numbers
         assert_eq!(abs(&Value::Number(1e308)).unwrap(), Value::Number(1e308));
@@ -524,8 +524,12 @@ mod tests {
 
         // Clamping digits to -20..20
         assert_eq!(
-            round(&Value::Number(1.234567890123456789), &Value::Number(21.0)).unwrap(),
-            Value::Number(1.234567890123456789)
+            round(
+                &Value::Number(1.234_567_890_123_456_7),
+                &Value::Number(21.0)
+            )
+            .unwrap(),
+            Value::Number(1.234_567_890_123_456_7)
         );
         assert_eq!(
             round(
@@ -538,8 +542,12 @@ mod tests {
 
         // Digits at boundaries
         assert_eq!(
-            round(&Value::Number(1.234567890123456789), &Value::Number(20.0)).unwrap(),
-            Value::Number(1.234567890123456789)
+            round(
+                &Value::Number(1.234_567_890_123_456_7),
+                &Value::Number(20.0)
+            )
+            .unwrap(),
+            Value::Number(1.234_567_890_123_456_7)
         );
         assert_eq!(
             round(
@@ -654,9 +662,9 @@ mod tests {
         );
 
         // Decimal numbers
-        let result = plus(&Value::Number(3.14), &Value::Number(1.59)).unwrap();
+        let result = plus(&Value::Number(3.15), &Value::Number(1.6)).unwrap();
         if let Value::Number(n) = result {
-            assert!((n - 4.73).abs() < 1e-10);
+            assert!((n - 4.75).abs() < 1e-10);
         } else {
             panic!("Expected Number");
         }
@@ -844,7 +852,7 @@ mod tests {
 
         // Decimal numbers
         assert_eq!(
-            minus(&Value::Number(3.14), &Value::Number(1.59)).unwrap(),
+            minus(&Value::Number(3.15), &Value::Number(1.6)).unwrap(),
             Value::Number(1.55)
         );
         assert_eq!(
@@ -1030,9 +1038,9 @@ mod tests {
         );
 
         // Decimal numbers
-        let result = times(&Value::Number(3.14), &Value::Number(1.59)).unwrap();
+        let result = times(&Value::Number(3.15), &Value::Number(1.6)).unwrap();
         if let Value::Number(n) = result {
-            assert!((n - 4.9926).abs() < 1e-10);
+            assert!((n - 5.04).abs() < 1e-10);
         } else {
             panic!("Expected Number");
         }
@@ -1703,8 +1711,8 @@ mod tests {
 
         // Decimal numbers
         assert_eq!(
-            max(&Value::Number(3.14), &Value::Number(2.71)).unwrap(),
-            Value::Number(3.14)
+            max(&Value::Number(3.15), &Value::Number(2.72)).unwrap(),
+            Value::Number(3.15)
         );
         assert_eq!(
             max(&Value::Number(10.5), &Value::Number(10.25)).unwrap(),
@@ -1887,8 +1895,8 @@ mod tests {
 
         // Decimal numbers
         assert_eq!(
-            min(&Value::Number(3.14), &Value::Number(2.71)).unwrap(),
-            Value::Number(2.71)
+            min(&Value::Number(3.15), &Value::Number(2.72)).unwrap(),
+            Value::Number(2.72)
         );
         assert_eq!(
             min(&Value::Number(10.5), &Value::Number(10.25)).unwrap(),

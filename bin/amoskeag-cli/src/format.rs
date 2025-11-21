@@ -78,7 +78,7 @@ mod tests {
 
     #[test]
     fn test_format_number_float() {
-        assert_eq!(format_value(&Value::Number(3.14)), "3.14");
+        assert_eq!(format_value(&Value::Number(3.15)), "3.15");
         assert_eq!(format_value(&Value::Number(-2.5)), "-2.5");
     }
 

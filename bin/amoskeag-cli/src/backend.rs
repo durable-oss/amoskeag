@@ -1,8 +1,6 @@
 //! Backend type selection and execution
 
 use amoskeag::{evaluate, AmoskeagValue as Value, CompiledProgram};
-#[cfg(feature = "jit")]
-use amoskeag_parser::Expr;
 use anyhow::{bail, Result};
 use std::collections::HashMap;
 
@@ -84,12 +82,6 @@ pub fn evaluate_with_backend(
             );
         }
     }
-}
-
-/// Helper to get the AST from a compiled program
-#[cfg(feature = "jit")]
-fn get_program_ast(program: &CompiledProgram) -> &Expr {
-    program.ast()
 }
 
 #[cfg(test)]

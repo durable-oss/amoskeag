@@ -93,16 +93,16 @@ fn handle_repl_command(args: &[String]) -> Result<()> {
     run_repl(backend)
 }
 
-/// Parse arguments for run and eval commands
-/// Returns (source, data_file, symbols, backend)
-fn parse_run_eval_args<'a>(
-    args: &'a [String],
-) -> Result<(
+type ParsedArgs<'a> = (
     Option<&'a str>,
     Option<&'a String>,
     Vec<&'a str>,
     BackendType,
-)> {
+);
+
+/// Parse arguments for run and eval commands
+/// Returns (source, data_file, symbols, backend)
+fn parse_run_eval_args(args: &[String]) -> Result<ParsedArgs<'_>> {
     let mut source = None;
     let mut data_file = None;
     let mut backend = BackendType::default();
