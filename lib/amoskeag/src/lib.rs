@@ -127,6 +127,11 @@ impl Context {
         // 3. Return nil if not found (safe navigation)
         Value::Nil
     }
+
+    fn contains(&self, name: &str) -> bool {
+        debug_assert!(!name.is_empty(), "contains() called with empty name");
+        self.locals.contains_key(name) || self.data.contains_key(name)
+    }
 }
 
 /// Compile an Amoskeag program with static validation
@@ -310,6 +315,8 @@ fn validate_function_call(name: &str, arg_count: usize) -> Result<(), CompileErr
         // Date functions
         ("date_now", (0, 0)),
         ("date_format", (2, 2)),
+        ("date_trunc", (1, 1)),
+        ("date_parse", (1, 1)),
     ]
     .iter()
     .cloned()
@@ -395,13 +402,13 @@ pub fn eval_expr(expr: &Expr, context: &Context) -> Result<Value, EvalError> {
                 return Ok(Value::Nil);
             }
 
-            // Look up the root variable
-            let mut current = context.lookup(&path[0]);
-
-            // If the root variable is not found and it's a simple variable (no dots), error
-            if matches!(current, Value::Nil) && path.len() == 1 {
+            // If it's a simple variable (no dots), check if it exists
+            if path.len() == 1 && !context.contains(&path[0]) {
                 return Err(EvalError::VariableNotFound(path[0].clone()));
             }
+
+            // Look up the root variable
+            let mut current = context.lookup(&path[0]);
 
             // Navigate the path with safe navigation semantics
             for key in &path[1..] {
@@ -634,6 +641,8 @@ fn call_function(name: &str, args: &[Value]) -> Result<Value, EvalError> {
             }
         }
         "date_format" => date_format(&args[0], &args[1]).map_err(EvalError::from),
+        "date_trunc" => date_trunc(&args[0]).map_err(EvalError::from),
+        "date_parse" => date_parse(&args[0]).map_err(EvalError::from),
 
         _ => Err(EvalError::TypeError {
             expected: "known function".to_string(),

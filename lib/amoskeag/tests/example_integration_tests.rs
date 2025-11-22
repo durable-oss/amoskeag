@@ -642,3 +642,285 @@ fn test_capitalize_function() {
     let result = evaluate(&program, &data).expect("Evaluation failed");
     assert_eq!(result, Value::String("Hello world".to_string()));
 }
+
+// Regression test: variable containing dictionary should return the dictionary, not Boolean(true)
+#[test]
+fn test_variable_returns_dictionary_value() {
+    let source = "x";
+    let program = compile(&source, &[]).expect("Compilation failed");
+
+    let mut data = HashMap::new();
+    let mut inner_dict = HashMap::new();
+    inner_dict.insert("a".to_string(), Value::Number(1.0));
+    inner_dict.insert("b".to_string(), Value::Number(2.0));
+    data.insert("x".to_string(), Value::Dictionary(inner_dict.clone()));
+
+    let result = evaluate(&program, &data).expect("Evaluation failed");
+
+    // This should return the dictionary, not Boolean(true)
+    assert_eq!(result, Value::Dictionary(inner_dict));
+}
+
+// Additional test: variable containing array should return the array
+#[test]
+fn test_variable_returns_array_value() {
+    let source = "arr";
+    let program = compile(&source, &[]).expect("Compilation failed");
+
+    let mut data = HashMap::new();
+    let array = vec![Value::Number(1.0), Value::Number(2.0), Value::Number(3.0)];
+    data.insert("arr".to_string(), Value::Array(array.clone()));
+
+    let result = evaluate(&program, &data).expect("Evaluation failed");
+
+    assert_eq!(result, Value::Array(array));
+}
+
+// Test: nested dictionary access should work correctly
+#[test]
+fn test_nested_dictionary_access() {
+    let source = "user.address";
+    let program = compile(&source, &[]).expect("Compilation failed");
+
+    let mut address = HashMap::new();
+    address.insert(
+        "street".to_string(),
+        Value::String("123 Main St".to_string()),
+    );
+    address.insert("city".to_string(), Value::String("Boston".to_string()));
+
+    let mut user = HashMap::new();
+    user.insert("address".to_string(), Value::Dictionary(address.clone()));
+    user.insert("name".to_string(), Value::String("Alice".to_string()));
+
+    let mut data = HashMap::new();
+    data.insert("user".to_string(), Value::Dictionary(user));
+
+    let result = evaluate(&program, &data).expect("Evaluation failed");
+
+    assert_eq!(result, Value::Dictionary(address));
+}
+
+// Test: variable containing empty dictionary should return empty dictionary
+#[test]
+fn test_variable_returns_empty_dictionary() {
+    let source = "empty";
+    let program = compile(&source, &[]).expect("Compilation failed");
+
+    let mut data = HashMap::new();
+    let empty_dict = HashMap::new();
+    data.insert("empty".to_string(), Value::Dictionary(empty_dict.clone()));
+
+    let result = evaluate(&program, &data).expect("Evaluation failed");
+
+    assert_eq!(result, Value::Dictionary(empty_dict));
+}
+
+// Test: variable containing dictionary with mixed types
+#[test]
+fn test_variable_returns_complex_dictionary() {
+    let source = "config";
+    let program = compile(&source, &[]).expect("Compilation failed");
+
+    let mut config = HashMap::new();
+    config.insert("enabled".to_string(), Value::Boolean(true));
+    config.insert("count".to_string(), Value::Number(42.0));
+    config.insert("name".to_string(), Value::String("test".to_string()));
+    config.insert(
+        "tags".to_string(),
+        Value::Array(vec![
+            Value::String("a".to_string()),
+            Value::String("b".to_string()),
+        ]),
+    );
+
+    let mut data = HashMap::new();
+    data.insert("config".to_string(), Value::Dictionary(config.clone()));
+
+    let result = evaluate(&program, &data).expect("Evaluation failed");
+
+    assert_eq!(result, Value::Dictionary(config));
+}
+
+// Test: variable containing symbol should return the symbol
+#[test]
+fn test_variable_returns_symbol_value() {
+    let source = "status";
+    let program = compile(&source, &["active", "inactive"]).expect("Compilation failed");
+
+    let mut data = HashMap::new();
+    data.insert("status".to_string(), Value::Symbol("active".to_string()));
+
+    let result = evaluate(&program, &data).expect("Evaluation failed");
+
+    assert_eq!(result, Value::Symbol("active".to_string()));
+}
+
+// Test: variable containing string should return the string
+#[test]
+fn test_variable_returns_string_value() {
+    let source = "message";
+    let program = compile(&source, &[]).expect("Compilation failed");
+
+    let mut data = HashMap::new();
+    data.insert("message".to_string(), Value::String("Hello".to_string()));
+
+    let result = evaluate(&program, &data).expect("Evaluation failed");
+
+    assert_eq!(result, Value::String("Hello".to_string()));
+}
+
+// Test: variable containing number should return the number
+#[test]
+fn test_variable_returns_number_value() {
+    let source = "count";
+    let program = compile(&source, &[]).expect("Compilation failed");
+
+    let mut data = HashMap::new();
+    data.insert("count".to_string(), Value::Number(42.5));
+
+    let result = evaluate(&program, &data).expect("Evaluation failed");
+
+    assert_eq!(result, Value::Number(42.5));
+}
+
+// Test: variable containing boolean true should return true
+#[test]
+fn test_variable_returns_boolean_true_value() {
+    let source = "flag";
+    let program = compile(&source, &[]).expect("Compilation failed");
+
+    let mut data = HashMap::new();
+    data.insert("flag".to_string(), Value::Boolean(true));
+
+    let result = evaluate(&program, &data).expect("Evaluation failed");
+
+    assert_eq!(result, Value::Boolean(true));
+}
+
+// Test: variable containing boolean false should return false
+#[test]
+fn test_variable_returns_boolean_false_value() {
+    let source = "disabled";
+    let program = compile(&source, &[]).expect("Compilation failed");
+
+    let mut data = HashMap::new();
+    data.insert("disabled".to_string(), Value::Boolean(false));
+
+    let result = evaluate(&program, &data).expect("Evaluation failed");
+
+    assert_eq!(result, Value::Boolean(false));
+}
+
+// Test: variable containing nil should return nil
+#[test]
+fn test_variable_returns_nil_value() {
+    let source = "missing";
+    let program = compile(&source, &[]).expect("Compilation failed");
+
+    let mut data = HashMap::new();
+    data.insert("missing".to_string(), Value::Nil);
+
+    let result = evaluate(&program, &data).expect("Evaluation failed");
+
+    assert_eq!(result, Value::Nil);
+}
+
+// Test: date_trunc function with ISO 8601 datetime
+#[test]
+fn test_date_trunc_iso8601() {
+    let source = r#"date_trunc("2025-01-18T14:30:00Z")"#;
+    let program = compile(&source, &[]).expect("Compilation failed");
+    let data = HashMap::new();
+    let result = evaluate(&program, &data).expect("Evaluation failed");
+
+    assert_eq!(result, Value::String("2025-01-18".to_string()));
+}
+
+// Test: date_trunc function with space-separated datetime
+#[test]
+fn test_date_trunc_space_separated() {
+    let source = r#"date_trunc("2025-01-18 14:30:00")"#;
+    let program = compile(&source, &[]).expect("Compilation failed");
+    let data = HashMap::new();
+    let result = evaluate(&program, &data).expect("Evaluation failed");
+
+    assert_eq!(result, Value::String("2025-01-18".to_string()));
+}
+
+// Test: date_trunc function with date only (already truncated)
+#[test]
+fn test_date_trunc_already_truncated() {
+    let source = r#"date_trunc("2025-01-18")"#;
+    let program = compile(&source, &[]).expect("Compilation failed");
+    let data = HashMap::new();
+    let result = evaluate(&program, &data).expect("Evaluation failed");
+
+    assert_eq!(result, Value::String("2025-01-18".to_string()));
+}
+
+// Test: date_trunc with invalid format
+#[test]
+fn test_date_trunc_invalid_format() {
+    let source = r#"date_trunc("not-a-date")"#;
+    let program = compile(&source, &[]).expect("Compilation failed");
+    let data = HashMap::new();
+    let result = evaluate(&program, &data);
+
+    assert!(result.is_err());
+}
+
+// Test: date_parse function with valid date
+#[test]
+fn test_date_parse_valid() {
+    let source = r#"date_parse("2025-01-18")"#;
+    let program = compile(&source, &[]).expect("Compilation failed");
+    let data = HashMap::new();
+    let result = evaluate(&program, &data).expect("Evaluation failed");
+
+    assert_eq!(result, Value::String("2025-01-18".to_string()));
+}
+
+// Test: date_parse with invalid format
+#[test]
+fn test_date_parse_invalid_format() {
+    let source = r#"date_parse("01/18/2025")"#;
+    let program = compile(&source, &[]).expect("Compilation failed");
+    let data = HashMap::new();
+    let result = evaluate(&program, &data);
+
+    assert!(result.is_err());
+}
+
+// Test: date_parse with invalid month
+#[test]
+fn test_date_parse_invalid_month() {
+    let source = r#"date_parse("2025-13-18")"#;
+    let program = compile(&source, &[]).expect("Compilation failed");
+    let data = HashMap::new();
+    let result = evaluate(&program, &data);
+
+    assert!(result.is_err());
+}
+
+// Test: date_parse with invalid day
+#[test]
+fn test_date_parse_invalid_day() {
+    let source = r#"date_parse("2025-01-32")"#;
+    let program = compile(&source, &[]).expect("Compilation failed");
+    let data = HashMap::new();
+    let result = evaluate(&program, &data);
+
+    assert!(result.is_err());
+}
+
+// Test: chaining date_trunc with date_parse
+#[test]
+fn test_date_trunc_then_parse() {
+    let source = r#"date_parse(date_trunc("2025-01-18T14:30:00Z"))"#;
+    let program = compile(&source, &[]).expect("Compilation failed");
+    let data = HashMap::new();
+    let result = evaluate(&program, &data).expect("Evaluation failed");
+
+    assert_eq!(result, Value::String("2025-01-18".to_string()));
+}

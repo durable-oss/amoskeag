@@ -22,6 +22,7 @@ pub enum FunctionError {
     ArgumentError { message: String },
     IndexOutOfBounds { index: usize, len: usize },
     InvalidOperation { message: String },
+    ValueError { message: String },
 }
 
 impl std::fmt::Display for FunctionError {
@@ -42,6 +43,9 @@ impl std::fmt::Display for FunctionError {
             }
             FunctionError::InvalidOperation { message } => {
                 write!(f, "Invalid operation: {}", message)
+            }
+            FunctionError::ValueError { message } => {
+                write!(f, "Value error: {}", message)
             }
         }
     }
