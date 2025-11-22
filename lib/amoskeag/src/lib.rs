@@ -279,6 +279,9 @@ fn validate_function_call(name: &str, arg_count: usize) -> Result<(), CompileErr
         ("values", (1, 1)),
         ("reverse", (1, 1)),
         ("at", (2, 2)),
+        ("uniq", (1, 1)),
+        ("group_by", (2, 2)),
+        ("map", (2, 2)),
         // Logic functions
         ("choose", (2, 2)),
         ("if_then_else", (3, 3)),
@@ -587,6 +590,9 @@ fn call_function(name: &str, args: &[Value]) -> Result<Value, EvalError> {
         "values" => values(&args[0]).map_err(EvalError::from),
         "reverse" => reverse(&args[0]).map_err(EvalError::from),
         "at" => at(&args[0], &args[1]).map_err(EvalError::from),
+        "uniq" => uniq(&args[0]).map_err(EvalError::from),
+        "group_by" => group_by(&args[0], &args[1]).map_err(EvalError::from),
+        "map" => map(&args[0], &args[1]).map_err(EvalError::from),
 
         // Logic functions
         "choose" => choose(&args[0], &args[1]).map_err(EvalError::from),
@@ -1115,7 +1121,7 @@ mod tests {
             ("ceil(3.2)", Value::Number(4.0)),
             ("floor(3.8)", Value::Number(3.0)),
             ("round(3.5)", Value::Number(4.0)),
-            ("round(3.14159, 2)", Value::Number(3.14)),
+            ("round(2.71828, 2)", Value::Number(2.72)),
             ("plus(2, 3)", Value::Number(5.0)),
             ("minus(5, 3)", Value::Number(2.0)),
             ("times(4, 5)", Value::Number(20.0)),
@@ -1150,6 +1156,14 @@ mod tests {
                 Value::Array(vec![
                     Value::String("a".to_string()),
                     Value::String("b".to_string()),
+                ]),
+            ),
+            (
+                "uniq([1, 2, 1, 3, 2])",
+                Value::Array(vec![
+                    Value::Number(1.0),
+                    Value::Number(2.0),
+                    Value::Number(3.0),
                 ]),
             ),
         ];
@@ -1205,6 +1219,46 @@ mod tests {
             let result = evaluate(&program, &data).unwrap();
             assert_eq!(result, expected, "Failed for: {}", source);
         }
+    }
+
+    #[test]
+    fn test_group_by_function() {
+        let source = "group_by([{'type': 'a', 'val': 1}, {'type': 'b', 'val': 2}, {'type': 'a', 'val': 3}], 'type')";
+        let program = compile(source, &[]).unwrap();
+        let data = HashMap::new();
+        let result = evaluate(&program, &data).unwrap();
+
+        match result {
+            Value::Dictionary(groups) => {
+                assert_eq!(groups.len(), 2);
+                assert!(groups.contains_key("a"));
+                assert!(groups.contains_key("b"));
+
+                if let Some(Value::Array(a_group)) = groups.get("a") {
+                    assert_eq!(a_group.len(), 2);
+                }
+                if let Some(Value::Array(b_group)) = groups.get("b") {
+                    assert_eq!(b_group.len(), 1);
+                }
+            }
+            _ => panic!("Expected Dictionary result"),
+        }
+    }
+
+    #[test]
+    fn test_map_function() {
+        let source = "map([{'name': 'alice', 'age': 30}, {'name': 'bob', 'age': 25}], 'name')";
+        let program = compile(source, &[]).unwrap();
+        let data = HashMap::new();
+        let result = evaluate(&program, &data).unwrap();
+
+        assert_eq!(
+            result,
+            Value::Array(vec![
+                Value::String("alice".to_string()),
+                Value::String("bob".to_string()),
+            ])
+        );
     }
 
     #[test]

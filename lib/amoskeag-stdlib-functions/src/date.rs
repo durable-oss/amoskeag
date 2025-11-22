@@ -114,19 +114,19 @@ pub fn date_parse(date_str: &Value) -> Result<Value, FunctionError> {
         })?;
 
     // Validate ranges
-    if month < 1 || month > 12 {
+    if !(1..=12).contains(&month) {
         return Err(FunctionError::ValueError {
             message: format!("Month must be between 1 and 12, got: {}", month),
         });
     }
 
-    if day < 1 || day > 31 {
+    if !(1..=31).contains(&day) {
         return Err(FunctionError::ValueError {
             message: format!("Day must be between 1 and 31, got: {}", day),
         });
     }
 
-    if year < 1000 || year > 9999 {
+    if !(1000..=9999).contains(&year) {
         return Err(FunctionError::ValueError {
             message: format!("Year must be between 1000 and 9999, got: {}", year),
         });
