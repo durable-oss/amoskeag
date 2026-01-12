@@ -1326,4 +1326,53 @@ mod tests {
             }
         ));
     }
+
+    #[test]
+    fn test_parse_brace_identifier() {
+        let expr = parse("{Customer Ratio}").unwrap();
+        assert_eq!(expr, Expr::Variable(vec!["Customer Ratio".to_string()]));
+    }
+
+    #[test]
+    fn test_parse_brace_identifier_in_comparison() {
+        let expr = parse("{Customer Ratio} > 0.5").unwrap();
+        assert_eq!(
+            expr,
+            Expr::Binary {
+                op: BinaryOp::Greater,
+                left: Box::new(Expr::Variable(vec!["Customer Ratio".to_string()])),
+                right: Box::new(Expr::Number(0.5)),
+            }
+        );
+    }
+
+    #[test]
+    fn test_parse_brace_identifier_with_dot_notation() {
+        let expr = parse("{Customer Ratio}.value").unwrap();
+        assert_eq!(
+            expr,
+            Expr::Variable(vec!["Customer Ratio".to_string(), "value".to_string()])
+        );
+    }
+
+    #[test]
+    fn test_parse_brace_identifier_in_if() {
+        let expr = parse("if {Total Revenue} > 1000 :approved else :denied end").unwrap();
+        if let Expr::If {
+            condition,
+            then_branch,
+            else_branch,
+        } = expr
+        {
+            if let Expr::Binary { left, .. } = *condition {
+                assert_eq!(*left, Expr::Variable(vec!["Total Revenue".to_string()]));
+            } else {
+                panic!("Expected binary expression in condition");
+            }
+            assert_eq!(*then_branch, Expr::Symbol("approved".to_string()));
+            assert_eq!(*else_branch, Expr::Symbol("denied".to_string()));
+        } else {
+            panic!("Expected if expression");
+        }
+    }
 }

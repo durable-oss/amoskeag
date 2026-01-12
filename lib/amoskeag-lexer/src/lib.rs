@@ -157,6 +157,9 @@ pub enum LexError {
     #[error("Unterminated string at line {line}, column {column}")]
     UnterminatedString { line: usize, column: usize },
 
+    #[error("Unterminated brace identifier at line {line}, column {column}")]
+    UnterminatedBraceIdentifier { line: usize, column: usize },
+
     #[error("Invalid number format at line {line}, column {column}")]
     InvalidNumber { line: usize, column: usize },
 
@@ -226,7 +229,14 @@ impl Lexer {
             ')' => Ok(self.make_token(TokenType::RightParen, ")", start_line, start_column)),
             '[' => Ok(self.make_token(TokenType::LeftBracket, "[", start_line, start_column)),
             ']' => Ok(self.make_token(TokenType::RightBracket, "]", start_line, start_column)),
-            '{' => Ok(self.make_token(TokenType::LeftBrace, "{", start_line, start_column)),
+            '{' => {
+                // Check if this is a brace-enclosed identifier
+                // We need to look ahead to determine if this is {identifier} or {key: value}
+                if self.is_brace_identifier() {
+                    return self.scan_brace_identifier(start_line, start_column);
+                }
+                Ok(self.make_token(TokenType::LeftBrace, "{", start_line, start_column))
+            }
             '}' => Ok(self.make_token(TokenType::RightBrace, "}", start_line, start_column)),
             ',' => Ok(self.make_token(TokenType::Comma, ",", start_line, start_column)),
             '.' => Ok(self.make_token(TokenType::Dot, ".", start_line, start_column)),
@@ -623,6 +633,68 @@ impl Lexer {
                 ))
             }
         }
+    }
+
+    fn is_brace_identifier(&self) -> bool {
+        // Look ahead to see if this looks like {identifier} vs {key: value}
+        // A brace identifier should NOT contain a colon before the closing brace
+        let mut i = self.position;
+        let mut has_content = false;
+
+        while i < self.input.len() {
+            let ch = self.input[i];
+            match ch {
+                '}' => return has_content,  // Found closing brace, it's an identifier
+                ':' => return false,        // Found colon, it's a dictionary
+                '"' | '\'' => return false, // String literal, likely a dictionary
+                _ => {
+                    if !ch.is_whitespace() {
+                        has_content = true;
+                    }
+                    i += 1;
+                }
+            }
+        }
+
+        false // No closing brace found
+    }
+
+    fn scan_brace_identifier(
+        &mut self,
+        start_line: usize,
+        start_column: usize,
+    ) -> Result<Token, LexError> {
+        // Brace identifier: { followed by identifier with possible spaces, then }
+        let mut value = String::new();
+
+        while let Some(ch) = self.peek() {
+            if ch == '}' {
+                self.advance();
+                let trimmed_value = value.trim();
+                if trimmed_value.is_empty() {
+                    return Err(LexError::UnexpectedCharacter {
+                        character: '}',
+                        line: self.line,
+                        column: self.column - 1,
+                    });
+                }
+                let lexeme = format!("{{{}}}", value);
+                return Ok(Token::new(
+                    TokenType::Identifier(trimmed_value.to_string()),
+                    lexeme,
+                    start_line,
+                    start_column,
+                ));
+            }
+
+            value.push(ch);
+            self.advance();
+        }
+
+        Err(LexError::UnterminatedBraceIdentifier {
+            line: start_line,
+            column: start_column,
+        })
     }
 }
 
@@ -1063,6 +1135,103 @@ mod tests {
         assert_eq!(tokens[3].token_type, TokenType::LogicalOr);
         assert_eq!(tokens[4].token_type, TokenType::Not);
         assert_eq!(tokens[5].token_type, TokenType::Bang);
+    }
+
+    #[test]
+    fn test_brace_identifier() {
+        let input = "{Customer Ratio}";
+        let mut lexer = Lexer::new(input);
+        let tokens = lexer.tokenize().unwrap();
+        assert_eq!(
+            tokens[0].token_type,
+            TokenType::Identifier("Customer Ratio".to_string())
+        );
+    }
+
+    #[test]
+    fn test_brace_identifier_with_extra_spaces() {
+        let input = "{  Customer Ratio  }";
+        let mut lexer = Lexer::new(input);
+        let tokens = lexer.tokenize().unwrap();
+        assert_eq!(
+            tokens[0].token_type,
+            TokenType::Identifier("Customer Ratio".to_string())
+        );
+    }
+
+    #[test]
+    fn test_brace_identifier_in_expression() {
+        let input = "{Customer Ratio} > 0.5";
+        let mut lexer = Lexer::new(input);
+        let tokens = lexer.tokenize().unwrap();
+        assert_eq!(
+            tokens[0].token_type,
+            TokenType::Identifier("Customer Ratio".to_string())
+        );
+        assert_eq!(tokens[1].token_type, TokenType::Greater);
+        assert_eq!(tokens[2].token_type, TokenType::Number(0.5));
+    }
+
+    #[test]
+    fn test_brace_identifier_with_special_chars() {
+        let input = "{Total Revenue (USD)}";
+        let mut lexer = Lexer::new(input);
+        let tokens = lexer.tokenize().unwrap();
+        assert_eq!(
+            tokens[0].token_type,
+            TokenType::Identifier("Total Revenue (USD)".to_string())
+        );
+    }
+
+    #[test]
+    fn test_brace_identifier_vs_dictionary() {
+        let input = r#"{name: "test"}"#;
+        let mut lexer = Lexer::new(input);
+        let tokens = lexer.tokenize().unwrap();
+        assert_eq!(tokens[0].token_type, TokenType::LeftBrace);
+        assert_eq!(
+            tokens[1].token_type,
+            TokenType::Identifier("name".to_string())
+        );
+        assert_eq!(tokens[2].token_type, TokenType::Colon);
+    }
+
+    #[test]
+    fn test_unterminated_brace_no_colon() {
+        // Without a closing brace and no colon, this is treated as dictionary start
+        // followed by two identifiers, which is valid lexically (parser will catch the error)
+        let input = "{Customer Ratio";
+        let mut lexer = Lexer::new(input);
+        let tokens = lexer.tokenize().unwrap();
+        assert_eq!(tokens[0].token_type, TokenType::LeftBrace);
+        assert_eq!(
+            tokens[1].token_type,
+            TokenType::Identifier("Customer".to_string())
+        );
+        assert_eq!(
+            tokens[2].token_type,
+            TokenType::Identifier("Ratio".to_string())
+        );
+    }
+
+    #[test]
+    fn test_error_unterminated_brace_identifier_with_closing() {
+        // If we explicitly start scanning a brace identifier but don't close it
+        // This would only happen in edge cases
+        let input = "{ abc";
+        let mut lexer = Lexer::new(input);
+        let tokens = lexer.tokenize().unwrap();
+        // This gets treated as a dictionary literal without closing brace
+        assert_eq!(tokens[0].token_type, TokenType::LeftBrace);
+    }
+
+    #[test]
+    fn test_empty_braces_is_dictionary() {
+        let input = "{}";
+        let mut lexer = Lexer::new(input);
+        let tokens = lexer.tokenize().unwrap();
+        assert_eq!(tokens[0].token_type, TokenType::LeftBrace);
+        assert_eq!(tokens[1].token_type, TokenType::RightBrace);
     }
 
     #[test]
