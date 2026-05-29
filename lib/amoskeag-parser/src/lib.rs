@@ -173,7 +173,7 @@ impl Parser {
     }
 
     fn let_expression(&mut self) -> Result<Expr, ParseError> {
-        // LetExpression ::= "let" IDENTIFIER "=" Expression "in" Expression
+        // LetExpression ::= "let" IDENTIFIER "=" Expression ["in"] Expression
         self.consume_token(&TokenType::Let, "let")?;
 
         let name = self.consume_identifier()?;
@@ -182,7 +182,10 @@ impl Parser {
 
         let value = Box::new(self.expression()?);
 
-        self.consume_token(&TokenType::In, "in")?;
+        // "in" is optional; when absent the body is the rest of the expression
+        if self.check(&TokenType::In) {
+            self.advance();
+        }
 
         let body = Box::new(self.expression()?);
 
@@ -999,6 +1002,26 @@ mod tests {
                 assert_eq!(name, "y");
                 assert_eq!(*value, Expr::Number(2.0));
 
+                assert!(matches!(*body, Expr::Binary { .. }));
+            } else {
+                panic!("Expected nested let");
+            }
+        } else {
+            panic!("Expected let expression");
+        }
+    }
+
+    #[test]
+    fn test_parse_let_without_in() {
+        let expr = parse("let x = 1 let y = 2 x + y").unwrap();
+
+        if let Expr::Let { name, value, body } = expr {
+            assert_eq!(name, "x");
+            assert_eq!(*value, Expr::Number(1.0));
+
+            if let Expr::Let { name, value, body } = *body {
+                assert_eq!(name, "y");
+                assert_eq!(*value, Expr::Number(2.0));
                 assert!(matches!(*body, Expr::Binary { .. }));
             } else {
                 panic!("Expected nested let");
