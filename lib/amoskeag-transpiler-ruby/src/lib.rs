@@ -213,6 +213,7 @@ impl RubyTranspiler {
             BinaryOp::Multiply => "*",
             BinaryOp::Divide => "/",
             BinaryOp::Modulo => "%",
+            BinaryOp::Power => "**",
             BinaryOp::Equal => "==",
             BinaryOp::NotEqual => "!=",
             BinaryOp::Less => "<",

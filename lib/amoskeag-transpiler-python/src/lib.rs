@@ -365,6 +365,7 @@ fn transpile_expr(expr: &Expr, indent: &str, depth: usize) -> Result<String, Tra
                 BinaryOp::Multiply => Ok(format!("({} * {})", left_code, right_code)),
                 BinaryOp::Divide => Ok(format!("({} / {})", left_code, right_code)),
                 BinaryOp::Modulo => Ok(format!("({} % {})", left_code, right_code)),
+                BinaryOp::Power => Ok(format!("({} ** {})", left_code, right_code)),
                 BinaryOp::Equal => Ok(format!("({} == {})", left_code, right_code)),
                 BinaryOp::NotEqual => Ok(format!("({} != {})", left_code, right_code)),
                 BinaryOp::Less => Ok(format!("({} < {})", left_code, right_code)),

@@ -1,15 +1,20 @@
 //! Numeric functions for Amoskeag
 
 pub mod abs;
+pub mod array_max;
+pub mod array_min;
 pub mod ceil;
 pub mod divided_by;
 pub mod floor;
+pub mod log;
 pub mod max;
 pub mod min;
 pub mod minus;
 pub mod modulo;
 pub mod plus;
+pub mod power;
 pub mod round;
+pub mod sqrt;
 pub mod times;
 
 // Financial functions
@@ -33,6 +38,8 @@ pub mod sln;
 
 // Re-export all functions
 pub use abs::abs;
+pub use array_max::array_max;
+pub use array_min::array_min;
 pub use ceil::ceil;
 pub use cumipmt::cumipmt;
 pub use cumprinc::cumprinc;
@@ -44,6 +51,7 @@ pub use floor::floor;
 pub use fv::fv;
 pub use ipmt::ipmt;
 pub use irr::irr;
+pub use log::{ln, log, log10};
 pub use max::max;
 pub use min::min;
 pub use minus::minus;
@@ -54,11 +62,13 @@ pub use nper::nper;
 pub use npv::npv;
 pub use plus::plus;
 pub use pmt::pmt;
+pub use power::power;
 pub use ppmt::ppmt;
 pub use pv::pv;
 pub use rate::rate;
 pub use round::round;
 pub use sln::sln;
+pub use sqrt::sqrt;
 pub use times::times;
 
 /// Represents a numeric function that can be registered with inventory
@@ -122,6 +132,34 @@ inventory::submit! {
 
 inventory::submit! {
     NumericFunction { name: "min", description: "Calculate the minimum of two numbers", arity: Arity::Binary }
+}
+
+inventory::submit! {
+    NumericFunction { name: "array_min", description: "Return the minimum value in an array of numbers", arity: Arity::Unary }
+}
+
+inventory::submit! {
+    NumericFunction { name: "array_max", description: "Return the maximum value in an array of numbers", arity: Arity::Unary }
+}
+
+inventory::submit! {
+    NumericFunction { name: "power", description: "Raise a number to a power", arity: Arity::Binary }
+}
+
+inventory::submit! {
+    NumericFunction { name: "sqrt", description: "Calculate the square root of a number", arity: Arity::Unary }
+}
+
+inventory::submit! {
+    NumericFunction { name: "log", description: "Calculate the base-2 logarithm of a number", arity: Arity::Unary }
+}
+
+inventory::submit! {
+    NumericFunction { name: "log10", description: "Calculate the base-10 logarithm of a number", arity: Arity::Unary }
+}
+
+inventory::submit! {
+    NumericFunction { name: "ln", description: "Calculate the natural logarithm of a number", arity: Arity::Unary }
 }
 
 inventory::submit! {

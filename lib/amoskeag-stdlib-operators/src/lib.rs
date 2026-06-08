@@ -156,6 +156,18 @@ pub fn divide(left: &Value, right: &Value) -> Result<Value, OperatorError> {
     }
 }
 
+/// Exponentiation operator (^)
+pub fn power(left: &Value, right: &Value) -> Result<Value, OperatorError> {
+    match (left, right) {
+        (Value::Number(l), Value::Number(r)) => Ok(Value::Number(l.powf(*r))),
+        _ => Err(OperatorError::InvalidOperation {
+            op: "^".to_string(),
+            left: left.type_name().to_string(),
+            right: right.type_name().to_string(),
+        }),
+    }
+}
+
 /// Modulo operator (%)
 pub fn modulo(left: &Value, right: &Value) -> Result<Value, OperatorError> {
     match (left, right) {

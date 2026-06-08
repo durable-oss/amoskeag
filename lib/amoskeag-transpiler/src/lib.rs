@@ -296,6 +296,7 @@ impl Transpiler {
             BinaryOp::Multiply => "multiply",
             BinaryOp::Divide => "divide",
             BinaryOp::Modulo => "modulo",
+            BinaryOp::Power => "power",
             BinaryOp::Equal => "equal",
             BinaryOp::NotEqual => "not_equal",
             BinaryOp::Less => "less_than",

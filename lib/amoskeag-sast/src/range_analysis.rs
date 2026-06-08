@@ -336,7 +336,9 @@ impl RangeAnalyzer {
                     BinaryOp::Add => left_range.add(&right_range),
                     BinaryOp::Subtract => left_range.subtract(&right_range),
                     BinaryOp::Multiply => left_range.multiply(&right_range),
-                    BinaryOp::Divide | BinaryOp::Modulo => left_range.divide(&right_range),
+                    BinaryOp::Divide | BinaryOp::Modulo | BinaryOp::Power => {
+                        left_range.divide(&right_range)
+                    }
                     BinaryOp::Equal
                     | BinaryOp::NotEqual
                     | BinaryOp::Less

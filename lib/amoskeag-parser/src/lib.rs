@@ -72,6 +72,7 @@ pub enum BinaryOp {
     Multiply,
     Divide,
     Modulo,
+    Power,
 
     // Comparison
     Equal,
@@ -94,6 +95,7 @@ impl fmt::Display for BinaryOp {
             BinaryOp::Multiply => write!(f, "*"),
             BinaryOp::Divide => write!(f, "/"),
             BinaryOp::Modulo => write!(f, "%"),
+            BinaryOp::Power => write!(f, "^"),
             BinaryOp::Equal => write!(f, "=="),
             BinaryOp::NotEqual => write!(f, "!="),
             BinaryOp::Less => write!(f, "<"),
@@ -283,14 +285,22 @@ impl Parser {
     }
 
     fn multiplicative_expression(&mut self) -> Result<Expr, ParseError> {
-        // MultiplicativeExpression ::= PipeExpression ( ( "*" | "/" | "%" ) PipeExpression )*
+        // MultiplicativeExpression ::= ExponentialExpression ( ( "*" | "/" | "%" ) ExponentialExpression )*
         self.binary_op(
-            Self::pipe_expression,
+            Self::exponential_expression,
             &[
                 (TokenType::Star, BinaryOp::Multiply),
                 (TokenType::Slash, BinaryOp::Divide),
                 (TokenType::Percent, BinaryOp::Modulo),
             ],
+        )
+    }
+
+    fn exponential_expression(&mut self) -> Result<Expr, ParseError> {
+        // ExponentialExpression ::= PipeExpression ( "^" PipeExpression )*
+        self.binary_op(
+            Self::pipe_expression,
+            &[(TokenType::Caret, BinaryOp::Power)],
         )
     }
 

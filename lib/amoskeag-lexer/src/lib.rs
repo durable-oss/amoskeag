@@ -42,6 +42,7 @@ pub enum TokenType {
     Star,
     Slash,
     Percent,
+    Caret, // ^ (exponentiation)
     Pipe,
     Dot,
     Bang, // ! (unary not)
@@ -99,6 +100,7 @@ impl fmt::Display for TokenType {
             TokenType::Star => write!(f, "*"),
             TokenType::Slash => write!(f, "/"),
             TokenType::Percent => write!(f, "%"),
+            TokenType::Caret => write!(f, "^"),
             TokenType::Pipe => write!(f, "|"),
             TokenType::Dot => write!(f, "."),
             TokenType::Bang => write!(f, "!"),
@@ -245,6 +247,7 @@ impl Lexer {
             '*' => Ok(self.make_token(TokenType::Star, "*", start_line, start_column)),
             '/' => Ok(self.make_token(TokenType::Slash, "/", start_line, start_column)),
             '%' => Ok(self.make_token(TokenType::Percent, "%", start_line, start_column)),
+            '^' => Ok(self.make_token(TokenType::Caret, "^", start_line, start_column)),
 
             // Pipe or logical OR
             '|' => {
