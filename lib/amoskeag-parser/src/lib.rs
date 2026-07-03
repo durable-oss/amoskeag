@@ -259,9 +259,9 @@ impl Parser {
     }
 
     fn comparison_expression(&mut self) -> Result<Expr, ParseError> {
-        // ComparisonExpression ::= AdditiveExpression ( ( "==" | "!=" | "<" | ">" | "<=" | ">=" ) AdditiveExpression )*
+        // ComparisonExpression ::= PipeExpression ( ( "==" | "!=" | "<" | ">" | "<=" | ">=" ) PipeExpression )*
         self.binary_op(
-            Self::additive_expression,
+            Self::pipe_expression,
             &[
                 (TokenType::Equal, BinaryOp::Equal),
                 (TokenType::NotEqual, BinaryOp::NotEqual),
@@ -271,6 +271,43 @@ impl Parser {
                 (TokenType::GreaterEqual, BinaryOp::GreaterEqual),
             ],
         )
+    }
+
+    fn pipe_expression(&mut self) -> Result<Expr, ParseError> {
+        // PipeExpression ::= AdditiveExpression ( "|" FunctionCall )*
+        let mut expr = self.additive_expression()?;
+
+        while self.match_token(&TokenType::Pipe) {
+            // After pipe, we expect either:
+            // 1. An identifier (becomes a function call with expr as first arg)
+            // 2. A function call (expr becomes first argument)
+
+            let right = self.additive_expression()?;
+
+            // Transform pipe into function call
+            expr = match right {
+                Expr::Variable(ref parts) if parts.len() == 1 => {
+                    // Simple identifier: x | func => func(x)
+                    Expr::FunctionCall {
+                        name: parts[0].clone(),
+                        args: vec![expr],
+                    }
+                }
+                Expr::FunctionCall { name, mut args } => {
+                    // Function call: x | func(a, b) => func(x, a, b)
+                    args.insert(0, expr);
+                    Expr::FunctionCall { name, args }
+                }
+                _ => {
+                    return Err(ParseError::InvalidExpression {
+                        line: self.current_token().line,
+                        column: self.current_token().column,
+                    })
+                }
+            };
+        }
+
+        Ok(expr)
     }
 
     fn additive_expression(&mut self) -> Result<Expr, ParseError> {
@@ -297,48 +334,11 @@ impl Parser {
     }
 
     fn exponential_expression(&mut self) -> Result<Expr, ParseError> {
-        // ExponentialExpression ::= PipeExpression ( "^" PipeExpression )*
+        // ExponentialExpression ::= PrimaryExpression ( "^" PrimaryExpression )*
         self.binary_op(
-            Self::pipe_expression,
+            Self::primary_expression,
             &[(TokenType::Caret, BinaryOp::Power)],
         )
-    }
-
-    fn pipe_expression(&mut self) -> Result<Expr, ParseError> {
-        // PipeExpression ::= PrimaryExpression ( "|" FunctionCall )*
-        let mut expr = self.primary_expression()?;
-
-        while self.match_token(&TokenType::Pipe) {
-            // After pipe, we expect either:
-            // 1. An identifier (becomes a function call with expr as first arg)
-            // 2. A function call (expr becomes first argument)
-
-            let right = self.primary_expression()?;
-
-            // Transform pipe into function call
-            expr = match right {
-                Expr::Variable(ref parts) if parts.len() == 1 => {
-                    // Simple identifier: x | func => func(x)
-                    Expr::FunctionCall {
-                        name: parts[0].clone(),
-                        args: vec![expr],
-                    }
-                }
-                Expr::FunctionCall { name, mut args } => {
-                    // Function call: x | func(a, b) => func(x, a, b)
-                    args.insert(0, expr);
-                    Expr::FunctionCall { name, args }
-                }
-                _ => {
-                    return Err(ParseError::InvalidExpression {
-                        line: self.current_token().line,
-                        column: self.current_token().column,
-                    })
-                }
-            };
-        }
-
-        Ok(expr)
     }
 
     fn primary_expression(&mut self) -> Result<Expr, ParseError> {
@@ -807,6 +807,35 @@ mod tests {
                     },
                     Expr::Number(10.0),
                 ],
+            }
+        );
+    }
+
+    #[test]
+    fn test_parse_pipe_binds_looser_than_arithmetic() {
+        // Pipe must apply to the whole arithmetic expression, not just its last term:
+        // qty * price * (1 + tax) | round(2)  ==  round(qty * price * (1 + tax), 2)
+        let expr = parse("qty * price * (1 + tax) | round(2)").unwrap();
+
+        let product = Expr::Binary {
+            op: BinaryOp::Multiply,
+            left: Box::new(Expr::Binary {
+                op: BinaryOp::Multiply,
+                left: Box::new(Expr::Variable(vec!["qty".to_string()])),
+                right: Box::new(Expr::Variable(vec!["price".to_string()])),
+            }),
+            right: Box::new(Expr::Binary {
+                op: BinaryOp::Add,
+                left: Box::new(Expr::Number(1.0)),
+                right: Box::new(Expr::Variable(vec!["tax".to_string()])),
+            }),
+        };
+
+        assert_eq!(
+            expr,
+            Expr::FunctionCall {
+                name: "round".to_string(),
+                args: vec![product, Expr::Number(2.0)],
             }
         );
     }
