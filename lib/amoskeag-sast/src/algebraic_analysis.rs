@@ -271,11 +271,9 @@ impl AlgebraicAnalyzer {
                     }
                 }
             }
-            "divided_by" => {
-                // Check for division by zero in function form
-                if args.len() >= 2 {
-                    self.check_division_by_zero(&args[1], path_conditions);
-                }
+            // Check for division by zero in function form
+            "divided_by" if args.len() >= 2 => {
+                self.check_division_by_zero(&args[1], path_conditions);
             }
             _ => {}
         }

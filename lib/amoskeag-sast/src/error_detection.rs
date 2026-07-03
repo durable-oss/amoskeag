@@ -388,19 +388,17 @@ impl ErrorDetector {
                     }
                 }
             }
-            "divided_by" => {
-                // Check for division by zero
-                if args.len() >= 2 {
-                    if let Expr::Number(n) = &args[1] {
-                        if *n == 0.0 {
-                            self.errors.push(ProgrammingError {
-                                severity: ErrorSeverity::Critical,
-                                message: "Division by zero in divided_by function".to_string(),
-                                category: ErrorCategory::DivisionByZero,
-                                location: Some("divided_by function".to_string()),
-                                suggestion: Some("Use a non-zero divisor".to_string()),
-                            });
-                        }
+            // Check for division by zero
+            "divided_by" if args.len() >= 2 => {
+                if let Expr::Number(n) = &args[1] {
+                    if *n == 0.0 {
+                        self.errors.push(ProgrammingError {
+                            severity: ErrorSeverity::Critical,
+                            message: "Division by zero in divided_by function".to_string(),
+                            category: ErrorCategory::DivisionByZero,
+                            location: Some("divided_by function".to_string()),
+                            suggestion: Some("Use a non-zero divisor".to_string()),
+                        });
                     }
                 }
             }
